@@ -1,0 +1,20 @@
+cat > .gitignore << 'EOF'
+# Dependências
+frontend/node_modules/
+frontend/.next/
+
+# PocketBase (NÃO versionar dados locais)
+pocketbase/pb_data/
+!pocketbase/pb_migrations/
+*.db
+*.db-*
+
+# Ambiente/IDE
+.env
+.env.local
+.vscode/
+*.local
+
+# Sistema
+.DS_Store
+EOF
