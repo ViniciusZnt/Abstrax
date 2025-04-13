@@ -1,20 +1,27 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { UserHeader } from "@/components/user-header"
-import { DashboardNav } from "@/components/dashboard-nav"
-import { AlertCircle, Upload } from "lucide-react"
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserHeader } from "@/components/layout/user-header";
+import { DashboardNav } from "@/components/navigation/dashboard-nav";
+import { AlertCircle, Upload } from "lucide-react";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 // TODO: Substituir por dados da API quando o backend estiver pronto
 const userData = {
@@ -32,25 +39,27 @@ const userData = {
   totalArts: 12,
   totalAlbums: 3,
   totalLikes: 156,
-}
+};
 
 export default function ProfilePage() {
-  const router = useRouter()
-  const [activeTab, setActiveTab] = useState("info")
-  const [isEditing, setIsEditing] = useState(false)
-  const [isSaving, setIsSaving] = useState(false)
-  const [formError, setFormError] = useState("")
+  const router = useRouter();
+  const [activeTab, setActiveTab] = useState("info");
+  const [isEditing, setIsEditing] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [formError, setFormError] = useState("");
 
   // Form state
-  const [name, setName] = useState(userData.name)
-  const [email, setEmail] = useState(userData.email)
-  const [bio, setBio] = useState(userData.bio || "")
-  const [website, setWebsite] = useState(userData.website || "")
-  const [instagram, setInstagram] = useState(userData.socialLinks?.instagram || "")
-  const [twitter, setTwitter] = useState(userData.socialLinks?.twitter || "")
-  const [currentPassword, setCurrentPassword] = useState("")
-  const [newPassword, setNewPassword] = useState("")
-  const [confirmPassword, setConfirmPassword] = useState("")
+  const [name, setName] = useState(userData.name);
+  const [email, setEmail] = useState(userData.email);
+  const [bio, setBio] = useState(userData.bio || "");
+  const [website, setWebsite] = useState(userData.website || "");
+  const [instagram, setInstagram] = useState(
+    userData.socialLinks?.instagram || ""
+  );
+  const [twitter, setTwitter] = useState(userData.socialLinks?.twitter || "");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   // TODO: Buscar dados do usuário do backend
   // useEffect(() => {
@@ -75,8 +84,8 @@ export default function ProfilePage() {
   // }, [])
 
   const handleSaveProfile = async () => {
-    setFormError("")
-    setIsSaving(true)
+    setFormError("");
+    setIsSaving(true);
 
     try {
       // TODO: Integrar com o endpoint de atualização de perfil do backend
@@ -106,29 +115,29 @@ export default function ProfilePage() {
           instagram,
           twitter,
         },
-      })
+      });
 
       setTimeout(() => {
-        setIsSaving(false)
-        setIsEditing(false)
-      }, 1000)
+        setIsSaving(false);
+        setIsEditing(false);
+      }, 1000);
     } catch (error) {
-      console.error("Erro ao atualizar perfil:", error)
-      setFormError("Ocorreu um erro ao atualizar o perfil. Tente novamente.")
-      setIsSaving(false)
+      console.error("Erro ao atualizar perfil:", error);
+      setFormError("Ocorreu um erro ao atualizar o perfil. Tente novamente.");
+      setIsSaving(false);
     }
-  }
+  };
 
   const handleChangePassword = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setFormError("")
+    e.preventDefault();
+    setFormError("");
 
     if (newPassword !== confirmPassword) {
-      setFormError("As senhas não coincidem")
-      return
+      setFormError("As senhas não coincidem");
+      return;
     }
 
-    setIsSaving(true)
+    setIsSaving(true);
 
     try {
       // TODO: Integrar com o endpoint de alteração de senha do backend
@@ -145,26 +154,28 @@ export default function ProfilePage() {
       // })
 
       // Simulando atualização bem-sucedida
-      console.log("Alterando senha")
+      console.log("Alterando senha");
 
       setTimeout(() => {
-        setIsSaving(false)
-        setCurrentPassword("")
-        setNewPassword("")
-        setConfirmPassword("")
-        alert("Senha alterada com sucesso!")
-      }, 1000)
+        setIsSaving(false);
+        setCurrentPassword("");
+        setNewPassword("");
+        setConfirmPassword("");
+        alert("Senha alterada com sucesso!");
+      }, 1000);
     } catch (error) {
-      console.error("Erro ao alterar senha:", error)
-      setFormError("Ocorreu um erro ao alterar a senha. Verifique se a senha atual está correta.")
-      setIsSaving(false)
+      console.error("Erro ao alterar senha:", error);
+      setFormError(
+        "Ocorreu um erro ao alterar a senha. Verifique se a senha atual está correta."
+      );
+      setIsSaving(false);
     }
-  }
+  };
 
   const handleAvatarUpload = () => {
     // TODO: Implementar upload de avatar
-    alert("Funcionalidade de upload de avatar será implementada em breve!")
-  }
+    alert("Funcionalidade de upload de avatar será implementada em breve!");
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -176,10 +187,16 @@ export default function ProfilePage() {
         <main className="flex w-full flex-1 flex-col overflow-hidden">
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-2xl font-bold tracking-tight">Meu Perfil</h1>
-            {!isEditing && <Button onClick={() => setIsEditing(true)}>Editar Perfil</Button>}
+            {!isEditing && (
+              <Button onClick={() => setIsEditing(true)}>Editar Perfil</Button>
+            )}
           </div>
 
-          <Tabs defaultValue="info" className="w-full" onValueChange={setActiveTab}>
+          <Tabs
+            defaultValue="info"
+            className="w-full"
+            onValueChange={setActiveTab}
+          >
             <TabsList className="mb-6">
               <TabsTrigger value="info">Informações</TabsTrigger>
               <TabsTrigger value="security">Segurança</TabsTrigger>
@@ -190,15 +207,21 @@ export default function ProfilePage() {
                 <CardHeader>
                   <CardTitle>Perfil</CardTitle>
                   <CardDescription>
-                    Gerencie suas informações pessoais e como elas aparecem para outros usuários
+                    Gerencie suas informações pessoais e como elas aparecem para
+                    outros usuários
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   <div className="flex flex-col sm:flex-row gap-6 items-start">
                     <div className="relative">
                       <Avatar className="h-24 w-24">
-                        <AvatarImage src={userData.avatar} alt={userData.name} />
-                        <AvatarFallback className="text-2xl">{userData.name.charAt(0)}</AvatarFallback>
+                        <AvatarImage
+                          src={userData.avatar}
+                          alt={userData.name}
+                        />
+                        <AvatarFallback className="text-2xl">
+                          {userData.name.charAt(0)}
+                        </AvatarFallback>
                       </Avatar>
                       {isEditing && (
                         <Button
@@ -217,7 +240,11 @@ export default function ProfilePage() {
                         <>
                           <div className="space-y-2">
                             <Label htmlFor="name">Nome</Label>
-                            <Input id="name" value={name} onChange={(e) => setName(e.target.value)} />
+                            <Input
+                              id="name"
+                              value={name}
+                              onChange={(e) => setName(e.target.value)}
+                            />
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="email">E-mail</Label>
@@ -229,15 +256,22 @@ export default function ProfilePage() {
                               disabled
                             />
                             <p className="text-xs text-muted-foreground">
-                              Para alterar seu e-mail, entre em contato com o suporte.
+                              Para alterar seu e-mail, entre em contato com o
+                              suporte.
                             </p>
                           </div>
                         </>
                       ) : (
                         <>
-                          <h2 className="text-xl font-semibold">{userData.name}</h2>
-                          <p className="text-sm text-muted-foreground">{userData.email}</p>
-                          <p className="text-sm text-muted-foreground">Membro desde {userData.createdAt}</p>
+                          <h2 className="text-xl font-semibold">
+                            {userData.name}
+                          </h2>
+                          <p className="text-sm text-muted-foreground">
+                            {userData.email}
+                          </p>
+                          <p className="text-sm text-muted-foreground">
+                            Membro desde {userData.createdAt}
+                          </p>
                         </>
                       )}
                     </div>
@@ -323,7 +357,8 @@ export default function ProfilePage() {
                         </div>
                       )}
 
-                      {(userData.socialLinks?.instagram || userData.socialLinks?.twitter) && (
+                      {(userData.socialLinks?.instagram ||
+                        userData.socialLinks?.twitter) && (
                         <div>
                           <h3 className="text-sm font-medium">Redes Sociais</h3>
                           <div className="flex gap-4 mt-1">
@@ -356,27 +391,40 @@ export default function ProfilePage() {
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <Card>
                       <CardContent className="p-4 text-center">
-                        <p className="text-3xl font-bold">{userData.totalArts}</p>
-                        <p className="text-sm text-muted-foreground">Obras Criadas</p>
+                        <p className="text-3xl font-bold">
+                          {userData.totalArts}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Obras Criadas
+                        </p>
                       </CardContent>
                     </Card>
                     <Card>
                       <CardContent className="p-4 text-center">
-                        <p className="text-3xl font-bold">{userData.totalAlbums}</p>
+                        <p className="text-3xl font-bold">
+                          {userData.totalAlbums}
+                        </p>
                         <p className="text-sm text-muted-foreground">Álbuns</p>
                       </CardContent>
                     </Card>
                     <Card>
                       <CardContent className="p-4 text-center">
-                        <p className="text-3xl font-bold">{userData.totalLikes}</p>
-                        <p className="text-sm text-muted-foreground">Curtidas Recebidas</p>
+                        <p className="text-3xl font-bold">
+                          {userData.totalLikes}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          Curtidas Recebidas
+                        </p>
                       </CardContent>
                     </Card>
                   </div>
                 </CardContent>
                 {isEditing && (
                   <CardFooter className="flex justify-between">
-                    <Button variant="outline" onClick={() => setIsEditing(false)}>
+                    <Button
+                      variant="outline"
+                      onClick={() => setIsEditing(false)}
+                    >
                       Cancelar
                     </Button>
                     <Button onClick={handleSaveProfile} disabled={isSaving}>
@@ -391,7 +439,9 @@ export default function ProfilePage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Alterar Senha</CardTitle>
-                  <CardDescription>Atualize sua senha para manter sua conta segura</CardDescription>
+                  <CardDescription>
+                    Atualize sua senha para manter sua conta segura
+                  </CardDescription>
                 </CardHeader>
                 <form onSubmit={handleChangePassword}>
                   <CardContent className="space-y-4">
@@ -426,7 +476,9 @@ export default function ProfilePage() {
                     </div>
 
                     <div className="space-y-2">
-                      <Label htmlFor="confirm-password">Confirmar Nova Senha</Label>
+                      <Label htmlFor="confirm-password">
+                        Confirmar Nova Senha
+                      </Label>
                       <Input
                         id="confirm-password"
                         type="password"
@@ -447,14 +499,18 @@ export default function ProfilePage() {
               <Card>
                 <CardHeader>
                   <CardTitle>Sessões Ativas</CardTitle>
-                  <CardDescription>Gerencie os dispositivos onde você está conectado</CardDescription>
+                  <CardDescription>
+                    Gerencie os dispositivos onde você está conectado
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">Este dispositivo</p>
-                        <p className="text-sm text-muted-foreground">Última atividade: Agora</p>
+                        <p className="text-sm text-muted-foreground">
+                          Última atividade: Agora
+                        </p>
                       </div>
                       <Button variant="outline" size="sm" disabled>
                         Atual
@@ -463,7 +519,9 @@ export default function ProfilePage() {
                     <div className="flex items-center justify-between">
                       <div>
                         <p className="font-medium">Chrome em Windows</p>
-                        <p className="text-sm text-muted-foreground">Última atividade: 2 dias atrás</p>
+                        <p className="text-sm text-muted-foreground">
+                          Última atividade: 2 dias atrás
+                        </p>
                       </div>
                       <Button variant="outline" size="sm">
                         Encerrar
@@ -480,13 +538,17 @@ export default function ProfilePage() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-destructive">Zona de Perigo</CardTitle>
-                  <CardDescription>Ações irreversíveis relacionadas à sua conta</CardDescription>
+                  <CardTitle className="text-destructive">
+                    Zona de Perigo
+                  </CardTitle>
+                  <CardDescription>
+                    Ações irreversíveis relacionadas à sua conta
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <p className="text-sm text-muted-foreground mb-4">
-                    A exclusão da sua conta é permanente e removerá todos os seus dados, incluindo obras de arte, álbuns
-                    e comentários.
+                    A exclusão da sua conta é permanente e removerá todos os
+                    seus dados, incluindo obras de arte, álbuns e comentários.
                   </p>
                   <Button variant="destructive">Excluir Minha Conta</Button>
                 </CardContent>
@@ -496,6 +558,5 @@ export default function ProfilePage() {
         </main>
       </div>
     </div>
-  )
+  );
 }
-

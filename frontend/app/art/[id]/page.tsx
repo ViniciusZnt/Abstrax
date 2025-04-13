@@ -1,16 +1,16 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { useParams } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent } from "@/components/ui/card"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { UserHeader } from "@/components/user-header"
-import { Heart, Share2, Download, MessageSquare } from "lucide-react"
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { useParams } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { UserHeader } from "@/components/layout/user-header";
+import { Heart, Share2, Download, MessageSquare } from "lucide-react";
 
 // TODO: Substituir por dados da API quando o backend estiver pronto
 const artDetails = {
@@ -48,13 +48,13 @@ const artDetails = {
       createdAt: "20 de maio de 2023",
     },
   ],
-}
+};
 
 export default function ArtDetailPage() {
-  const params = useParams()
-  const [liked, setLiked] = useState(false)
-  const [likeCount, setLikeCount] = useState(artDetails.likes)
-  const [comment, setComment] = useState("")
+  const params = useParams();
+  const [liked, setLiked] = useState(false);
+  const [likeCount, setLikeCount] = useState(artDetails.likes);
+  const [comment, setComment] = useState("");
 
   // TODO: Buscar detalhes da arte do backend usando o ID
   // useEffect(() => {
@@ -72,25 +72,25 @@ export default function ArtDetailPage() {
     //   method: 'POST',
     // })
 
-    setLiked(!liked)
-    setLikeCount(liked ? likeCount - 1 : likeCount + 1)
-  }
+    setLiked(!liked);
+    setLikeCount(liked ? likeCount - 1 : likeCount + 1);
+  };
 
   const handleShare = () => {
     // TODO: Implementar funcionalidade de compartilhamento
-    navigator.clipboard.writeText(window.location.href)
-    alert("Link copiado para a área de transferência!")
-  }
+    navigator.clipboard.writeText(window.location.href);
+    alert("Link copiado para a área de transferência!");
+  };
 
   const handleDownload = () => {
     // TODO: Implementar funcionalidade de download
-    alert("Funcionalidade de download será implementada em breve!")
-  }
+    alert("Funcionalidade de download será implementada em breve!");
+  };
 
   const handleCommentSubmit = (e: React.FormEvent) => {
-    e.preventDefault()
+    e.preventDefault();
 
-    if (!comment.trim()) return
+    if (!comment.trim()) return;
 
     // TODO: Integrar com o endpoint de comentário do backend
     // const response = await fetch(`/api/arts/${params.id}/comments`, {
@@ -99,27 +99,40 @@ export default function ArtDetailPage() {
     //   body: JSON.stringify({ text: comment }),
     // })
 
-    alert("Comentário enviado com sucesso!")
-    setComment("")
-  }
+    alert("Comentário enviado com sucesso!");
+    setComment("");
+  };
 
   return (
     <div className="flex min-h-screen flex-col">
       <UserHeader />
       <div className="container py-6 px-4 md:px-6">
         <div className="mb-6">
-          <Link href="/gallery" className="text-primary hover:underline mb-4 inline-block">
+          <Link
+            href="/gallery"
+            className="text-primary hover:underline mb-4 inline-block"
+          >
             &larr; Voltar para a Galeria
           </Link>
-          <h1 className="text-3xl font-bold tracking-tight">{artDetails.title}</h1>
+          <h1 className="text-3xl font-bold tracking-tight">
+            {artDetails.title}
+          </h1>
           <div className="flex items-center gap-2 mt-2">
             <Avatar className="h-6 w-6">
-              <AvatarImage src={artDetails.creator.avatar} alt={artDetails.creator.name} />
-              <AvatarFallback>{artDetails.creator.name.charAt(0)}</AvatarFallback>
+              <AvatarImage
+                src={artDetails.creator.avatar}
+                alt={artDetails.creator.name}
+              />
+              <AvatarFallback>
+                {artDetails.creator.name.charAt(0)}
+              </AvatarFallback>
             </Avatar>
             <span className="text-sm text-muted-foreground">
               Por{" "}
-              <Link href={`/user/${artDetails.creator.id}`} className="text-primary hover:underline">
+              <Link
+                href={`/user/${artDetails.creator.id}`}
+                className="text-primary hover:underline"
+              >
                 {artDetails.creator.name}
               </Link>{" "}
               • {artDetails.createdAt}
@@ -151,15 +164,28 @@ export default function ArtDetailPage() {
                   className="flex items-center gap-1"
                   onClick={handleLike}
                 >
-                  <Heart className="h-4 w-4" fill={liked ? "currentColor" : "none"} />
+                  <Heart
+                    className="h-4 w-4"
+                    fill={liked ? "currentColor" : "none"}
+                  />
                   <span>{likeCount}</span>
                 </Button>
-                <Button variant="outline" size="sm" className="flex items-center gap-1" onClick={handleShare}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center gap-1"
+                  onClick={handleShare}
+                >
                   <Share2 className="h-4 w-4" />
                   <span>Compartilhar</span>
                 </Button>
               </div>
-              <Button variant="outline" size="sm" className="flex items-center gap-1" onClick={handleDownload}>
+              <Button
+                variant="outline"
+                size="sm"
+                className="flex items-center gap-1"
+                onClick={handleDownload}
+              >
                 <Download className="h-4 w-4" />
                 <span>Download</span>
               </Button>
@@ -203,13 +229,20 @@ export default function ArtDetailPage() {
                 {artDetails.comments.map((comment) => (
                   <div key={comment.id} className="flex gap-3">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={comment.user.avatar} alt={comment.user.name} />
-                      <AvatarFallback>{comment.user.name.charAt(0)}</AvatarFallback>
+                      <AvatarImage
+                        src={comment.user.avatar}
+                        alt={comment.user.name}
+                      />
+                      <AvatarFallback>
+                        {comment.user.name.charAt(0)}
+                      </AvatarFallback>
                     </Avatar>
                     <div>
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{comment.user.name}</span>
-                        <span className="text-xs text-muted-foreground">{comment.createdAt}</span>
+                        <span className="text-xs text-muted-foreground">
+                          {comment.createdAt}
+                        </span>
                       </div>
                       <p className="text-sm">{comment.text}</p>
                     </div>
@@ -226,16 +259,22 @@ export default function ArtDetailPage() {
                 <dl className="space-y-2">
                   <div className="flex justify-between">
                     <dt className="font-medium">Dimensões:</dt>
-                    <dd className="text-muted-foreground">{artDetails.dimensions}</dd>
+                    <dd className="text-muted-foreground">
+                      {artDetails.dimensions}
+                    </dd>
                   </div>
                   <div className="flex justify-between">
                     <dt className="font-medium">Data de criação:</dt>
-                    <dd className="text-muted-foreground">{artDetails.createdAt}</dd>
+                    <dd className="text-muted-foreground">
+                      {artDetails.createdAt}
+                    </dd>
                   </div>
                   <div className="flex justify-between">
                     <dt className="font-medium">Criador:</dt>
                     <dd className="text-primary hover:underline">
-                      <Link href={`/user/${artDetails.creator.id}`}>{artDetails.creator.name}</Link>
+                      <Link href={`/user/${artDetails.creator.id}`}>
+                        {artDetails.creator.name}
+                      </Link>
                     </dd>
                   </div>
                 </dl>
@@ -295,6 +334,5 @@ export default function ArtDetailPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-

@@ -1,33 +1,38 @@
-import type React from "react"
-import type { Metadata } from "next"
-import { Inter } from "next/font/google"
-import "./globals.css"
-import { ThemeProvider } from "@/components/theme-provider"
+//Estrutura raiz do app
+//Providers (tema, autenticação)
 
-const inter = Inter({ subsets: ["latin"] })
+import type { Metadata } from "next";
+import { Inter } from "next/font/google";
+import "./globals.css";
+import { ThemeProvider } from "@/components/theme-provider";
+
+const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
   title: "Abstrax - Gerador de Arte Abstrata",
-  description: "Crie, gerencie e compartilhe obras de arte abstrata geradas automaticamente",
-    generator: 'v0.dev'
-}
+  description:
+    "Crie, gerencie e compartilhe obras de arte abstrata geradas automaticamente",
+  generator: "Vinicius Zanatta",
+};
 
 export default function RootLayout({
   children,
-}: Readonly<{
-  children: React.ReactNode
-}>) {
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <html lang="pt-BR">
+    <html lang="pt-BR" suppressHydrationWarning>
       <body className={inter.className}>
-        <ThemeProvider attribute="class" defaultTheme="light" enableSystem disableTransitionOnChange>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="light"
+          enableSystem
+          disableTransitionOnChange
+          storageKey="abstrax-theme"
+        >
           {children}
         </ThemeProvider>
       </body>
     </html>
-  )
+  );
 }
-
-
-
-import './globals.css'

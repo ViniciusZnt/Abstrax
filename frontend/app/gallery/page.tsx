@@ -1,13 +1,13 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import Link from "next/link"
-import Image from "next/image"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardFooter } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { UserHeader } from "@/components/layout/user-header"
+import { useState } from "react";
+import Link from "next/link";
+import Image from "next/image";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { UserHeader } from "@/components/layout/user-header";
 
 // TODO: Substituir por dados da API quando o backend estiver pronto
 const publicArts = [
@@ -65,37 +65,41 @@ const publicArts = [
     createdAt: "2023-10-02",
     likes: 21,
   },
-]
+];
 
 export default function GalleryPage() {
-  const [searchTerm, setSearchTerm] = useState("")
-  const [activeTab, setActiveTab] = useState("recent")
+  const [searchTerm, setSearchTerm] = useState("");
+  const [activeTab, setActiveTab] = useState("recent");
 
   // Filtrar artes com base no termo de pesquisa
   const filteredArts = publicArts.filter(
     (art) =>
-      art.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      art.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      art.creator.toLowerCase().includes(searchTerm.toLowerCase()),
-  )
+      art.title.toLowerCase().includes(searchTerm.toLowerCase()) || //Pesquisa sobre Titula
+      art.description.toLowerCase().includes(searchTerm.toLowerCase()) || //Pesquisa sobre Descrição
+      art.creator.toLowerCase().includes(searchTerm.toLowerCase()) //Pesquisa sobre Criador
+  );
 
   // Ordenar artes com base na aba ativa
   const sortedArts = [...filteredArts].sort((a, b) => {
     if (activeTab === "recent") {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     } else if (activeTab === "popular") {
-      return b.likes - a.likes
+      return b.likes - a.likes;
     }
-    return 0
-  })
+    return 0;
+  });
 
   return (
     <div className="flex min-h-screen flex-col">
       <UserHeader />
       <div className="container py-6 px-4 md:px-6">
         <div className="mb-6">
-          <h1 className="text-3xl font-bold tracking-tight mb-2">Galeria de Arte</h1>
-          <p className="text-muted-foreground">Explore obras de arte criadas pela comunidade</p>
+          <h1 className="text-3xl font-bold tracking-tight mb-2">
+            Galeria de Arte
+          </h1>
+          <p className="text-muted-foreground">
+            Explore obras de arte criadas pela comunidade
+          </p>
         </div>
 
         <div className="flex flex-col gap-6">
@@ -106,7 +110,11 @@ export default function GalleryPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-md"
             />
-            <Tabs defaultValue="recent" className="w-[400px]" onValueChange={setActiveTab}>
+            <Tabs
+              defaultValue="recent"
+              className="w-[400px]"
+              onValueChange={setActiveTab}
+            >
               <TabsList className="grid w-full grid-cols-2">
                 <TabsTrigger value="recent">Mais Recentes</TabsTrigger>
                 <TabsTrigger value="popular">Mais Populares</TabsTrigger>
@@ -116,7 +124,9 @@ export default function GalleryPage() {
 
           {sortedArts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <p className="text-muted-foreground mb-4">Nenhuma arte encontrada</p>
+              <p className="text-muted-foreground mb-4">
+                Nenhuma arte encontrada
+              </p>
               <Link href="/create">
                 <Button>Criar Arte</Button>
               </Link>
@@ -135,9 +145,13 @@ export default function GalleryPage() {
                     />
                     <div className="p-4">
                       <h3 className="font-semibold text-lg">{art.title}</h3>
-                      <p className="text-sm text-muted-foreground">{art.description}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {art.description}
+                      </p>
                       <div className="mt-2 flex items-center justify-between">
-                        <span className="text-xs text-muted-foreground">Por: {art.creator}</span>
+                        <span className="text-xs text-muted-foreground">
+                          Por: {art.creator}
+                        </span>
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -170,6 +184,5 @@ export default function GalleryPage() {
         </div>
       </div>
     </div>
-  )
+  );
 }
-
