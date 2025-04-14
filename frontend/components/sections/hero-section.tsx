@@ -53,8 +53,8 @@ export function HeroSection() {
               {/* Placeholder para arte abstrata gerada */}
               <div className="absolute inset-0 bg-gradient-to-br from-blue-400 via-green-400 to-lime-600 opacity-80"></div>
               <div className="absolute inset-0 flex items-center justify-center">
-                <p className="text-center text-lg font-medium text-white">
-                  Arte abstrata gerada pelo Abstrax
+                <p className="text-center text-4xl font-medium text-white">
+                  Abstrax
                 </p>
               </div>
             </div>

@@ -15,16 +15,10 @@ interface DashboardNavProps {
 export function DashboardNav({ activeItem }: DashboardNavProps) {
   const navItems = [
     {
-      title: "Minhas Artes",
-      href: "/arts",
+      title: "Minha Galeria",
+      href: "/my-gallery",
       icon: <PaintBucket className="h-4 w-4" />,
       id: "arts",
-    },
-    {
-      title: "Meus Álbuns",
-      href: "/albums",
-      icon: <FolderOpen className="h-4 w-4" />,
-      id: "albums",
     },
     {
       title: "Meu Perfil",

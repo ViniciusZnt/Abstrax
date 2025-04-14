@@ -11,7 +11,6 @@ import { UserHeader } from "@/components/layout/user-header";
 import HeartIcon from "@/components/icons/heart-icon";
 import { LockClosedIcon, LockOpenIcon } from "@/components/icons/lock-icon";
 
-// TODO: Substituir por dados da API quando o backend estiver pronto
 const publicArts = [
   {
     id: "1",
@@ -75,7 +74,7 @@ const publicArts = [
   },
 ];
 
-export default function GalleryPage() {
+export default function MyGalleryPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("recent");
 
@@ -103,11 +102,9 @@ export default function GalleryPage() {
       <div className="container py-6 px-4 md:px-6">
         <div className="mb-10">
           <h1 className="text-3xl font-bold tracking-tight mb-2">
-            Galeria de Arte
+            Minha Galeria
           </h1>
-          <p className="text-muted-foreground">
-            Explore obras de arte criadas pela comunidade
-          </p>
+          <p className="text-muted-foreground">Explore suas artes criadas</p>
         </div>
 
         <div className="flex flex-col gap-6 md:gap-10">
