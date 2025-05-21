@@ -16,7 +16,7 @@ const server = app.listen(PORT, async () => {
   }
 });
 
-// Lidar com desligamento gracioso
+// Lidar com desligamento
 process.on("SIGTERM", async () => {
   await disconnectPrisma();
   server.close(() => {

@@ -79,8 +79,9 @@ export default function GalleryPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("recent");
 
+  const publicFilteredArts = publicArts.filter((art) => art.isPublic);
   // Filtrar artes com base no termo de pesquisa
-  const filteredArts = publicArts.filter(
+  const filteredArts = publicFilteredArts.filter(
     (art) =>
       art.title.toLowerCase().includes(searchTerm.toLowerCase()) || //Pesquisa sobre Titula
       art.description.toLowerCase().includes(searchTerm.toLowerCase()) || //Pesquisa sobre Descrição
@@ -162,9 +163,15 @@ export default function GalleryPage() {
                         </span>
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
                           {art.isPublic ? (
-                            <LockOpenIcon className="h-4 w-4" />
+                            <LockOpenIcon
+                              className="h-4 w-4"
+                              aria-label="cadeado aberto"
+                            />
                           ) : (
-                            <LockClosedIcon className="h-4 w-4" />
+                            <LockClosedIcon
+                              className="h-4 w-4"
+                              aria-label="cadeado fechado"
+                            />
                           )}
                           <HeartIcon className="h-4 w-4 text-red-500" />
                           <span className="text-sm text-muted-foreground flex items-center gap-2">

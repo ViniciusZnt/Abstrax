@@ -1,24 +1,31 @@
-"use client"
+"use client";
 
-import type React from "react"
+import type React from "react";
 
-import { useState } from "react"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardFooter,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 
 export default function LoginPage() {
-  const router = useRouter()
-  const [email, setEmail] = useState("")
-  const [password, setPassword] = useState("")
-  const [isLoading, setIsLoading] = useState(false)
+  const router = useRouter();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setIsLoading(true)
+    e.preventDefault();
+    setIsLoading(true);
 
     try {
       // TODO: Integrar com o endpoint de login do backend
@@ -29,23 +36,25 @@ export default function LoginPage() {
       // })
 
       // Simulando login bem-sucedido
-      console.log("Login com:", { email, password })
+      console.log("Login com:", { email, password });
       setTimeout(() => {
-        router.push("/dashboard")
-      }, 1000)
+        router.push("/dashboard");
+        setIsLoading(false); // <-- movido para cá para só desativar após o push
+      }, 1000);
     } catch (error) {
-      console.error("Erro ao fazer login:", error)
-    } finally {
-      setIsLoading(false)
+      console.error("Erro ao fazer login:", error);
+      setIsLoading(false); // também deve parar o loading se der erro
     }
-  }
+  };
 
   return (
     <div className="flex min-h-screen items-center justify-center px-4 py-12">
       <Card className="w-full max-w-md">
         <CardHeader className="space-y-1">
           <CardTitle className="text-2xl font-bold">Entrar</CardTitle>
-          <CardDescription>Entre com seu e-mail e senha para acessar sua conta</CardDescription>
+          <CardDescription>
+            Entre com seu e-mail e senha para acessar sua conta
+          </CardDescription>
         </CardHeader>
         <form onSubmit={handleSubmit}>
           <CardContent className="space-y-4">
@@ -63,7 +72,10 @@ export default function LoginPage() {
             <div className="space-y-2">
               <div className="flex items-center justify-between">
                 <Label htmlFor="password">Senha</Label>
-                <Link href="/forgot-password" className="text-sm text-primary hover:underline">
+                <Link
+                  href="/forgot-password"
+                  className="text-sm text-primary hover:underline"
+                >
                   Esqueceu a senha?
                 </Link>
               </div>
@@ -90,6 +102,5 @@ export default function LoginPage() {
         </form>
       </Card>
     </div>
-  )
+  );
 }
-
