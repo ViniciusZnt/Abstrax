@@ -1,0 +1,67 @@
+// This is your Prisma schema file
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  password  String
+  name      String
+  role      String   @default("user")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  arts      Art[]
+  albums    Album[]
+  actions   ActionLog[]
+}
+
+model Art {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  imageUrl    String   @default("placeholder.jpg")
+  isPublic    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  creator     User     @relation(fields: [creatorId], references: [id])
+  creatorId   String
+  album       Album?   @relation(fields: [albumId], references: [id])
+  albumId     String?
+  actions     ActionLog[]
+}
+
+model Album {
+  id          String   @id @default(uuid())
+  title       String
+  description String?
+  imageUrl    String   @default("placeholder.jpg")
+  tags        Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  creator     User     @relation(fields: [creatorId], references: [id])
+  creatorId   String
+  arts        Art[]
+  actions     ActionLog[]
+}
+
+model ActionLog {
+  id          String    @id @default(uuid())
+  action      String    // CREATE, UPDATE, DELETE, MOVE
+  entityType  String    // Art, Album
+  entityId    String
+  details     Json?     // Detalhes adicionais da ação
+  createdAt   DateTime  @default(now())
+  user        User      @relation(fields: [userId], references: [id])
+  userId      String
+  art         Art?      @relation(fields: [artId], references: [id])
+  artId       String?
+  album       Album?    @relation(fields: [albumId], references: [id])
+  albumId     String?
+} 

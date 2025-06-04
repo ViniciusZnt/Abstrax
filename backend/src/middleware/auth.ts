@@ -12,11 +12,24 @@ export const authenticate = (
   res: Response,
   next: NextFunction
 ): void => {
-  // Agora pegando o token do body em vez do header
-  const token = req.body.token;
+  const authHeader = req.headers.authorization;
 
-  if (!token) {
-    res.status(401).json({ error: "Token ausente no body da requisição" });
+  if (!authHeader) {
+    res.status(401).json({ error: "Token de autorização não fornecido" });
+    return;
+  }
+
+  // Formato esperado: "Bearer token"
+  const parts = authHeader.split(' ');
+  if (parts.length !== 2) {
+    res.status(401).json({ error: "Token mal formatado" });
+    return;
+  }
+
+  const [scheme, token] = parts;
+
+  if (!/^Bearer$/i.test(scheme)) {
+    res.status(401).json({ error: "Token mal formatado" });
     return;
   }
 
@@ -28,8 +41,6 @@ export const authenticate = (
     if (err instanceof jwt.TokenExpiredError) {
       res.status(401).json({ error: "Token expirado" });
     } else if (err instanceof jwt.JsonWebTokenError) {
-      console.log("Token recebido:", token);
-      console.log("JWT_SECRET:", JWT_SECRET);
       res.status(401).json({ error: "Token inválido" });
     } else {
       res.status(500).json({ error: "Erro na autenticação" });
