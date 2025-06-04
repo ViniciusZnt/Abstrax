@@ -2,6 +2,9 @@
 **Gerador de Arte Abstrata**  
 *Crie, explore e compartilhe obras de arte únicas através de algoritmos generativos.*
 
+psql -U admin -d abstrax -h localhost -p 5432
+
+
 ---
 
 ## 🚀 Visão Geral

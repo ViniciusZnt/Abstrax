@@ -1,11 +1,16 @@
 import prisma from "../utils/prisma";
 import { logService, ActionType, EntityType } from "./logService";
+import { PrismaClient } from '@prisma/client';
+
+const prismaClient = new PrismaClient();
 
 interface CreateArtData {
   name: string;
   description?: string;
   isPublic: boolean;
   creatorId: string;
+  metadata?: any;
+  tags?: string[];
 }
 
 interface UpdateArtData {
@@ -13,6 +18,8 @@ interface UpdateArtData {
   description?: string;
   isPublic?: boolean;
   userId: string;
+  metadata?: any;
+  tags?: string[];
 }
 
 export const artService = {
@@ -216,6 +223,38 @@ export const artService = {
       },
       orderBy: {
         createdAt: "desc",
+      },
+    });
+  },
+
+  async updateArtImage(id: string, imageBuffer: Buffer, mimeType: string, userId: string) {
+    // Verificar se a arte existe e pertence ao usuário
+    const art = await prismaClient.art.findFirst({
+      where: {
+        id,
+        creatorId: userId,
+      },
+    });
+
+    if (!art) {
+      throw new Error("Arte não encontrada ou não autorizado");
+    }
+
+    // Atualizar a arte com a nova imagem
+    return prismaClient.art.update({
+      where: { id },
+      data: {
+        imageData: imageBuffer,
+        mimeType: mimeType,
+        updatedAt: new Date(),
+      },
+      include: {
+        creator: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
       },
     });
   },

@@ -1,13 +1,13 @@
 "use client";
 
 import type React from "react";
-
 import { useState } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 import {
   Card,
   CardContent,
@@ -16,6 +16,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { api } from "@/services/api";
 
 export default function LoginPage() {
   const router = useRouter();
@@ -28,22 +29,18 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      // TODO: Integrar com o endpoint de login do backend
-      // const response = await fetch('/api/auth/login', {
-      //   method: 'POST',
-      //   headers: { 'Content-Type': 'application/json' },
-      //   body: JSON.stringify({ email, password }),
-      // })
+      const { token, user } = await api.login({ email, password });
+      
+      // Armazenar o token e dados do usuário
+      localStorage.setItem('token', token);
+      localStorage.setItem('user', JSON.stringify(user));
 
-      // Simulando login bem-sucedido
-      console.log("Login com:", { email, password });
-      setTimeout(() => {
-        router.push("/dashboard");
-        setIsLoading(false); // <-- movido para cá para só desativar após o push
-      }, 1000);
+      toast.success('Login realizado com sucesso!');
+      router.push("/my-gallery");
     } catch (error) {
-      console.error("Erro ao fazer login:", error);
-      setIsLoading(false); // também deve parar o loading se der erro
+      toast.error(error instanceof Error ? error.message : 'Erro ao fazer login');
+    } finally {
+      setIsLoading(false);
     }
   };
 

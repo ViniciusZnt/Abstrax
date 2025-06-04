@@ -32,6 +32,8 @@ import {
 } from "@/components/ui/popover";
 import { HexColorPicker } from "@/components/color-picker";
 import { Info } from "lucide-react";
+import { toast } from "sonner";
+import { api } from "@/services/api";
 
 export default function CreateArtPage() {
   const router = useRouter();
@@ -373,89 +375,96 @@ export default function CreateArtPage() {
     }, 800);
   };
 
-  const saveArt = () => {
+  const saveArt = async () => {
     if (!title) {
-      alert("Por favor, adicione um título para sua arte");
+      toast.error("Por favor, adicione um título para sua arte");
+      return;
+    }
+
+    if (!canvasRef.current) {
+      toast.error("Erro ao capturar a imagem. Tente gerar a arte novamente.");
       return;
     }
 
     setIsSaving(true);
 
-    // Capturar a imagem do canvas
-    const imageData = canvasRef.current?.toDataURL("image/png");
+    try {
+      // Capturar a imagem do canvas
+      const imageBlob = await new Promise<Blob>((resolve) => {
+        canvasRef.current?.toBlob((blob) => {
+          if (blob) resolve(blob);
+        }, 'image/png');
+      });
 
-    // TODO: Integrar com o endpoint de salvamento do backend
-    // const response = await fetch('/api/arts', {
-    //   method: 'POST',
-    //   headers: { 'Content-Type': 'application/json' },
-    //   body: JSON.stringify({
-    //     title,
-    //     description,
-    //     isPublic,
-    //     tags: tags.split(',').map(tag => tag.trim()),
-    //     imageData,
-    //     metadata: {
-    //       artType,
-    //       parameters: getArtParameters()
-    //     }
-    //   }),
-    // })
-
-    // Função para obter os parâmetros específicos do tipo de arte
-    const getArtParameters = () => {
-      switch (artType) {
-        case "circular":
-          return {
-            backgroundColor,
-            foregroundColor,
-            elements,
-            radius,
-            lineWidth,
-            randomness,
-            showArcs,
-            showRects,
-          };
-        case "geometric":
-          return {
-            backgroundColor,
-            foregroundColor,
-            gridSize,
-            shapeVariety,
-            rotationAngle,
-            symmetry,
-            colorVariety,
-          };
-        case "fluid":
-          return {
-            backgroundColor,
-            layers,
-            turbulence,
-            flowSpeed,
-            colorBlending,
-            gradientColors,
-          };
-        default:
-          return {};
+      // Criar FormData com os dados da arte
+      const formData = new FormData();
+      formData.append('name', title);
+      formData.append('description', description);
+      formData.append('isPublic', String(isPublic));
+      formData.append('image', imageBlob, 'art.png');
+      
+      // Adicionar tags se houver
+      if (tags.trim()) {
+        const tagArray = tags.split(',').map(tag => tag.trim());
+        formData.append('tags', JSON.stringify(tagArray));
       }
-    };
 
-    // Simulando salvamento bem-sucedido
-    console.log("Salvando arte:", {
-      title,
-      description,
-      isPublic,
-      tags: tags.split(",").map((tag) => tag.trim()),
-      imageDataLength: imageData?.length,
-      metadata: {
+      // Adicionar metadados da geração
+      const metadata = {
         artType,
-        parameters: getArtParameters(),
-      },
-    });
+        parameters: getArtParameters()
+      };
+      formData.append('metadata', JSON.stringify(metadata));
 
-    setTimeout(() => {
+      // Enviar para a API
+      await api.arts.create(formData);
+
+      toast.success("Arte salva com sucesso!");
+      router.push("/my-gallery");
+    } catch (error) {
+      console.error("Erro ao salvar arte:", error);
+      toast.error(error instanceof Error ? error.message : "Erro ao salvar arte");
+    } finally {
       setIsSaving(false);
-      router.push("/dashboard");
-    }, 1500);
+    }
+  };
+
+  // Função para obter os parâmetros específicos do tipo de arte
+  const getArtParameters = () => {
+    switch (artType) {
+      case "circular":
+        return {
+          backgroundColor,
+          foregroundColor,
+          elements,
+          radius,
+          lineWidth,
+          randomness,
+          showArcs,
+          showRects,
+        };
+      case "geometric":
+        return {
+          backgroundColor,
+          foregroundColor,
+          gridSize,
+          shapeVariety,
+          rotationAngle,
+          symmetry,
+          colorVariety,
+        };
+      case "fluid":
+        return {
+          backgroundColor,
+          layers,
+          turbulence,
+          flowSpeed,
+          colorBlending,
+          gradientColors,
+        };
+      default:
+        return {};
+    }
   };
 
   return (
@@ -483,9 +492,9 @@ export default function CreateArtPage() {
                 <div className="relative border rounded-lg overflow-hidden">
                   <canvas
                     ref={canvasRef}
-                    width={600}
-                    height={400}
-                    className="bg-white"
+                    width={canvasSize}
+                    height={canvasSize}
+                    className="w-full h-full max-w-[600px] max-h-[600px] bg-white"
                   />
                   {isGenerating && (
                     <div className="absolute inset-0 flex items-center justify-center bg-background/80">

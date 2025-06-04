@@ -111,3 +111,62 @@ export const getUserArts = async (req: any, res: Response, next: NextFunction) =
     next(error);
   }
 }; 
+
+// src/controllers/artController.ts
+export const uploadImage = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const userId = req.userId;
+    const file = req.file;
+
+    if (!userId) {
+      res.status(401).json({ error: "Usuário não autenticado" });
+      return;
+    }
+
+    if (!file) {
+      res.status(400).json({ error: "Nenhuma imagem enviada" });
+      return;
+    }
+
+    const art = await artService.updateArtImage(
+      id,
+      file.buffer,
+      file.mimetype,
+      userId
+    );
+    
+    res.json(art);
+  } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getArtImage = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const userId = req.userId;
+
+    if (!userId) {
+      res.status(401).json({ error: "Usuário não autenticado" });
+      return;
+    }
+
+    const art = await artService.getArt(id, userId);
+    
+    if (!art) {
+      res.status(404).json({ error: "Arte não encontrada" });
+      return;
+    }
+
+    if (!art.imageData || !art.mimeType) {
+      res.status(404).json({ error: "Imagem não encontrada" });
+      return;
+    }
+
+    res.setHeader('Content-Type', art.mimeType);
+    res.send(art.imageData);
+  } catch (error: any) {
+    next(error);
+  }
+};

@@ -27,6 +27,10 @@ model Art {
   name        String
   description String?
   imageUrl    String   @default("placeholder.jpg")
+  imageData   Bytes?   // Campo para armazenar a imagem diretamente no banco
+  mimeType    String?  // Tipo MIME da imagem
+  metadata    Json?    // Metadados da arte generativa (parâmetros usados)
+  tags        String[] // Tags da arte
   isPublic    Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
