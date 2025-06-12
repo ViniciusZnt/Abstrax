@@ -8,7 +8,15 @@ const nextConfig = {
     ignoreBuildErrors: true,
   },
   images: {
-    domains: ["placeholder.com"],
+    domains: ['localhost'],
+    remotePatterns: [
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '4000',
+        pathname: '/api/arts/**',
+      }
+    ],
     unoptimized: true,
   },
   experimental: {

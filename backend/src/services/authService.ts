@@ -34,9 +34,76 @@ export const authService = {
   async getProfile(userId: string) {
     const user = await prisma.user.findUnique({
       where: { id: userId },
-      select: { id: true, name: true, email: true },
+      include: {
+        arts: { select: { id: true } },
+        albums: { select: { id: true } },
+        actions: { select: { id: true } },
+      },
     });
 
-    return user;
+    if (!user) throw new Error("Perfil do usuário não encontrado");
+
+    // Calcular totalArts, totalAlbums, totalLikes (exemplo, você pode ter um campo dedicado para likes)
+    const totalArts = user.arts.length;
+    const totalAlbums = user.albums.length;
+    // Supondo que 'actions' pode ser usado para calcular 'likes' ou outra métrica
+    const totalLikes = user.actions.length; // Isso é um placeholder, ajuste conforme sua lógica de likes
+
+    // Remover password do retorno e campos que não queremos expor
+    const { password, arts, albums, actions, ...userProfile } = user;
+
+    return { 
+      ...userProfile, 
+      totalArts, 
+      totalAlbums, 
+      totalLikes
+    };
+  },
+
+  async updateProfile(userId: string, data: { name?: string; bio?: string; website?: string; socialLinks?: any }) {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: data,
+      include: {
+        arts: { select: { id: true } },
+        albums: { select: { id: true } },
+        actions: { select: { id: true } },
+      },
+    });
+
+    if (!user) throw new Error("Usuário não encontrado para atualização");
+
+    const totalArts = user.arts.length;
+    const totalAlbums = user.albums.length;
+    const totalLikes = user.actions.length; // Placeholder
+
+    // Remover password do retorno e campos que não queremos expor
+    const { password, arts, albums, actions, ...userProfile } = user;
+
+    return { 
+      ...userProfile, 
+      totalArts, 
+      totalAlbums, 
+      totalLikes
+    };
+  },
+
+  async updatePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new Error("Usuário não encontrado");
+
+    const valid = await bcrypt.compare(currentPassword, user.password);
+    if (!valid) throw new Error("Senha atual inválida");
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+
+    return { message: "Senha atualizada com sucesso" };
   },
 };
+
+

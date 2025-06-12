@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { AuthImage } from "@/components/AuthImage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -150,15 +150,12 @@ export default function MyGalleryPage() {
                 <Card key={art.id} className="overflow-hidden">
                   <CardContent className="p-0">
                     <div className="relative">
-                      <Image
-                        src={art.imageUrl || api.arts.getImageUrl(art.id)}
+                      <AuthImage
+                        src={art.imageUrl}
                         alt={art.name}
                         width={400}
                         height={300}
                         className="object-cover w-full h-[200px]"
-                        onError={(e: any) => {
-                          e.target.src = "/placeholder-art.svg";
-                        }}
                       />
                       <button
                         onClick={() => handleToggleVisibility(art.id)}

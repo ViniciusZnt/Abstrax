@@ -12,24 +12,25 @@ export const authenticate = (
   res: Response,
   next: NextFunction
 ): void => {
+  let token: string | undefined;
+
+  // Primeiro tenta pegar o token do header de autorização
   const authHeader = req.headers.authorization;
+  if (authHeader) {
+    const parts = authHeader.split(' ');
+    if (parts.length === 2 && /^Bearer$/i.test(parts[0])) {
+      token = parts[1];
+    }
+  }
 
-  if (!authHeader) {
+  // Se não encontrou no header, tenta pegar da query string
+  if (!token && req.query.token) {
+    token = req.query.token as string;
+  }
+
+  // Se não encontrou o token em nenhum lugar
+  if (!token) {
     res.status(401).json({ error: "Token de autorização não fornecido" });
-    return;
-  }
-
-  // Formato esperado: "Bearer token"
-  const parts = authHeader.split(' ');
-  if (parts.length !== 2) {
-    res.status(401).json({ error: "Token mal formatado" });
-    return;
-  }
-
-  const [scheme, token] = parts;
-
-  if (!/^Bearer$/i.test(scheme)) {
-    res.status(401).json({ error: "Token mal formatado" });
     return;
   }
 

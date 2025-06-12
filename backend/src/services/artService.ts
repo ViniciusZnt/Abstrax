@@ -240,12 +240,34 @@ export const artService = {
       throw new Error("Arte não encontrada ou não autorizado");
     }
 
+    // Validar o buffer da imagem
+    if (!imageBuffer || imageBuffer.length === 0) {
+      throw new Error("Imagem inválida ou vazia");
+    }
+
+    // Validar o tipo MIME
+    const allowedMimes = ['image/jpeg', 'image/jpg', 'image/png'];
+    if (!allowedMimes.includes(mimeType)) {
+      throw new Error("Tipo de imagem não suportado. Use JPEG ou PNG.");
+    }
+
+    // Validar tamanho máximo (5MB)
+    const maxSize = 5 * 1024 * 1024; // 5MB em bytes
+    if (imageBuffer.length > maxSize) {
+      throw new Error("Imagem muito grande. Tamanho máximo permitido: 5MB");
+    }
+
+    try {
+      // Gerar URL única para a imagem
+      const imageUrl = `/arts/${id}/image`;
+
     // Atualizar a arte com a nova imagem
-    return prismaClient.art.update({
+      const updatedArt = await prismaClient.art.update({
       where: { id },
       data: {
         imageData: imageBuffer,
         mimeType: mimeType,
+          imageUrl: imageUrl,
         updatedAt: new Date(),
       },
       include: {
@@ -257,5 +279,30 @@ export const artService = {
         },
       },
     });
+
+      // Verificar se a imagem foi salva corretamente
+      if (!updatedArt.imageData) {
+        throw new Error("Falha ao salvar a imagem no banco de dados");
+      }
+
+      // Registrar a atualização da imagem no log
+      await logService.createLog({
+        action: ActionType.UPDATE,
+        entityType: EntityType.ART,
+        entityId: id,
+        userId: userId,
+        details: {
+          imageUpdated: true,
+          mimeType: mimeType,
+          size: imageBuffer.length,
+          imageUrl: imageUrl
+        }
+      });
+
+      return updatedArt;
+    } catch (error: any) {
+      console.error("Erro ao atualizar imagem:", error);
+      throw new Error(`Erro ao atualizar imagem: ${error.message}`);
+    }
   },
 }; 

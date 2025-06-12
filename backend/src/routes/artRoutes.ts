@@ -1,32 +1,30 @@
-import express from "express";
-import { createArt, getArt, updateArt, deleteArt, getUserArts, uploadImage, getArtImage } from "../controllers/artController";
+import { Router } from "express";
 import { authenticate } from "../middleware/auth";
 import upload from "../middleware/upload";
+import {
+  createArt,
+  getArt,
+  updateArt,
+  deleteArt,
+  getUserArts,
+  uploadImage,
+  getArtImage,
+} from "../controllers/artController";
 
-const router = express.Router();
+const router = Router();
 
-// Todas as rotas requerem autenticação
+// Rotas protegidas por autenticação
 router.use(authenticate);
 
-// Criar uma nova arte
-router.post("/", createArt);
-
-// Obter uma arte específica
+// Rotas de arte
+router.post("/", upload.single("image"), createArt);
+router.get("/user/arts", getUserArts);
 router.get("/:id", getArt);
-
-// Obter a imagem de uma arte específica
-router.get("/:id/image", getArtImage);
-
-// Atualizar uma arte
 router.put("/:id", updateArt);
-
-// Deletar uma arte
 router.delete("/:id", deleteArt);
 
-// Obter todas as artes do usuário
-router.get("/user/arts", getUserArts);
-
-// Upload de imagem para uma arte
+// Rotas de imagem
 router.post("/:id/image", upload.single("image"), uploadImage);
+router.get("/:id/image", getArtImage);
 
 export default router; 

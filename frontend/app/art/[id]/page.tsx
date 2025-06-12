@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
+import { AuthImage } from "@/components/AuthImage";
 import { useParams } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -133,15 +133,12 @@ export default function ArtDetailPage() {
             <Card>
               <CardContent className="p-0">
                 <div className="relative flex items-center justify-center bg-muted rounded-lg overflow-hidden">
-                  <Image
-                    src={art.imageUrl || api.arts.getImageUrl(art.id)}
+                  <AuthImage
+                    src={art.imageUrl}
                     alt={art.name}
                     width={800}
                     height={600}
                     className="object-contain max-h-[600px]"
-                    onError={(e: any) => {
-                      e.target.src = "/placeholder-art.svg";
-                    }}
                   />
                 </div>
               </CardContent>

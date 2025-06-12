@@ -13,6 +13,18 @@ interface User {
   id: string;
   name: string;
   email: string;
+  bio?: string;
+  website?: string;
+  socialLinks?: {
+    instagram?: string;
+    twitter?: string;
+  };
+  createdAt: string;
+  _count: {
+    arts: number;
+    albums: number;
+  };
+  totalLikes: number;
 }
 
 interface AuthResponse {
@@ -206,6 +218,107 @@ export const api = {
     // Obter URL da imagem de uma arte
     getImageUrl: (artId: string): string => {
       return `${process.env.NEXT_PUBLIC_API_URL}/arts/${artId}/image`;
+    },
+  },
+
+  users: {
+    // Obter perfil do usuário
+    getProfile: async (): Promise<User> => {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Usuário não autenticado');
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao buscar perfil');
+      }
+
+      return response.json();
+    },
+
+    // Atualizar perfil do usuário
+    updateProfile: async (data: {
+      name: string;
+      bio?: string;
+      website?: string;
+      socialLinks?: {
+        instagram?: string;
+        twitter?: string;
+      };
+    }): Promise<User> => {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Usuário não autenticado');
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao atualizar perfil');
+      }
+
+      return response.json();
+    },
+
+    // Alterar senha
+    changePassword: async (data: {
+      currentPassword: string;
+      newPassword: string;
+    }): Promise<void> => {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Usuário não autenticado');
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me/password`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao alterar senha');
+      }
+    },
+
+    // Upload de avatar
+    uploadAvatar: async (file: File): Promise<void> => {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Usuário não autenticado');
+
+      const formData = new FormData();
+      formData.append('avatar', file);
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/users/me/avatar`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao fazer upload do avatar');
+      }
+    },
+
+    // Obter URL do avatar
+    getAvatarUrl: (userId: string): string => {
+      return `${process.env.NEXT_PUBLIC_API_URL}/users/${userId}/avatar`;
     },
   },
 }; 
