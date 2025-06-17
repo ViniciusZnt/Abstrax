@@ -7,7 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { UserHeader } from "@/components/layout/user-header";
+import { MainNav } from "@/components/navigation/main-nav";
+import { AuthActions } from "@/components/layout/auth-actions";
 import HeartIcon from "@/components/icons/heart-icon";
 import { LockClosedIcon, LockOpenIcon } from "@/components/icons/lock-icon";
 import { api } from "@/services/api";
@@ -89,7 +90,12 @@ export default function MyGalleryPage() {
   if (isLoading) {
     return (
       <div className="flex min-h-screen flex-col">
-        <UserHeader />
+        <header className="border-b">
+          <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+            <MainNav />
+            <AuthActions />
+          </div>
+        </header>
         <div className="container py-6 px-4 md:px-6">
           <div className="flex items-center justify-center h-[60vh]">
             <p className="text-muted-foreground">Carregando suas artes...</p>
@@ -101,7 +107,12 @@ export default function MyGalleryPage() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <UserHeader />
+      <header className="border-b">
+        <div className="container flex h-16 items-center justify-between px-4 md:px-6">
+          <MainNav />
+          <AuthActions />
+        </div>
+      </header>
       <div className="container py-6 px-4 md:px-6">
         <div className="mb-10">
           <h1 className="text-3xl font-bold tracking-tight mb-2">

@@ -2,7 +2,7 @@ import { MainNav } from "@/components/navigation/main-nav";
 import { HeroSection } from "@/components/sections/hero-section";
 import { FeaturedArts } from "@/components/sections/featured-arts";
 import { Footer } from "@/components/layout/footer";
-import { LoginRegister } from "@/components/layout/login-register";
+import { AuthActions } from "@/components/layout/auth-actions";
 
 export default function Home() {
   return (
@@ -10,7 +10,7 @@ export default function Home() {
       <header className="border-b">
         <div className="container flex h-16 items-center justify-between px-4 md:px-6">
           <MainNav />
-          <LoginRegister />
+          <AuthActions />
         </div>
       </header>
       <main className="flex-1">

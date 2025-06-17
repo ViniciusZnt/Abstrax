@@ -2,7 +2,7 @@
 
 import type React from "react";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,24 +22,26 @@ import { UserHeader } from "@/components/layout/user-header";
 import { DashboardNav } from "@/components/navigation/dashboard-nav";
 import { AlertCircle, Upload } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { MainNav } from "@/components/navigation/main-nav";
+import { AuthActions } from "@/components/layout/auth-actions";
+import { api } from "@/services/api";
 
-// TODO: Substituir por dados da API quando o backend estiver pronto
-const userData = {
-  id: "user1",
-  name: "João Silva",
-  email: "joao@example.com",
-  bio: "Artista digital apaixonado por cores e formas abstratas. Explorando os limites da criatividade através da tecnologia.",
-  avatar: "/placeholder.svg?height=200&width=200",
-  website: "https://joaosilva.com",
-  socialLinks: {
-    instagram: "joao.silva",
-    twitter: "joaosilva",
-  },
-  createdAt: "Janeiro de 2023",
-  totalArts: 12,
-  totalAlbums: 3,
-  totalLikes: 156,
-};
+interface UserData {
+  id: string;
+  name: string;
+  email: string;
+  bio?: string;
+  avatar?: string;
+  website?: string;
+  socialLinks?: {
+    instagram?: string;
+    twitter?: string;
+  };
+  createdAt: string;
+  totalArts: number;
+  totalAlbums: number;
+  totalLikes: number;
+}
 
 export default function ProfilePage() {
   const router = useRouter();
@@ -49,39 +51,58 @@ export default function ProfilePage() {
   const [formError, setFormError] = useState("");
 
   // Form state
-  const [name, setName] = useState(userData.name);
-  const [email, setEmail] = useState(userData.email);
-  const [bio, setBio] = useState(userData.bio || "");
-  const [website, setWebsite] = useState(userData.website || "");
-  const [instagram, setInstagram] = useState(
-    userData.socialLinks?.instagram || ""
-  );
-  const [twitter, setTwitter] = useState(userData.socialLinks?.twitter || "");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [bio, setBio] = useState("");
+  const [website, setWebsite] = useState("");
+  const [instagram, setInstagram] = useState("");
+  const [twitter, setTwitter] = useState("");
   const [currentPassword, setCurrentPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
 
-  // TODO: Buscar dados do usuário do backend
-  // useEffect(() => {
-  //   const fetchUserData = async () => {
-  //     try {
-  //       const response = await fetch('/api/users/me', {
-  //         headers: {
-  //           'Authorization': `Bearer ${localStorage.getItem('token')}`
-  //         }
-  //       })
-  //       const data = await response.json()
-  //       // Atualizar estados com os dados do usuário
-  //       setName(data.name)
-  //       setEmail(data.email)
-  //       setBio(data.bio || "")
-  //       // etc...
-  //     } catch (error) {
-  //       console.error("Erro ao buscar dados do usuário:", error)
-  //     }
-  //   }
-  //   fetchUserData()
-  // }, [])
+  // Estado para dados do usuário
+  const [userData, setUserData] = useState<UserData | null>(null);
+
+  // Carregar dados do usuário
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+    api.users
+      .getProfile()
+      .then((data: any) => {
+        setUserData({
+          id: data.id,
+          name: data.name,
+          email: data.email,
+          bio: data.bio,
+          avatar: data.avatar,
+          website: data.website,
+          socialLinks: data.socialLinks,
+          createdAt: new Date(data.createdAt).toLocaleDateString("pt-BR", {
+            month: "long",
+            year: "numeric",
+          }),
+          totalArts: data.totalArts ?? data._count?.arts ?? 0,
+          totalAlbums: data.totalAlbums ?? data._count?.albums ?? 0,
+          totalLikes: data.totalLikes ?? 0,
+        });
+
+        setName(data.name);
+        setEmail(data.email);
+        setBio(data.bio || "");
+        setWebsite(data.website || "");
+        setInstagram(data.socialLinks?.instagram || "");
+        setTwitter(data.socialLinks?.twitter || "");
+      })
+      .catch(() => {
+        localStorage.removeItem("token");
+        router.push("/login");
+      });
+  }, []);
 
   const handleSaveProfile = async () => {
     setFormError("");
@@ -216,11 +237,11 @@ export default function ProfilePage() {
                     <div className="relative">
                       <Avatar className="h-24 w-24">
                         <AvatarImage
-                          src={userData.avatar}
-                          alt={userData.name}
+                          src={userData?.avatar}
+                          alt={userData?.name}
                         />
                         <AvatarFallback className="text-2xl">
-                          {userData.name.charAt(0)}
+                          {userData?.name.charAt(0)}
                         </AvatarFallback>
                       </Avatar>
                       {isEditing && (
@@ -264,13 +285,13 @@ export default function ProfilePage() {
                       ) : (
                         <>
                           <h2 className="text-xl font-semibold">
-                            {userData.name}
+                            {userData?.name}
                           </h2>
                           <p className="text-sm text-muted-foreground">
-                            {userData.email}
+                            {userData?.email}
                           </p>
                           <p className="text-sm text-muted-foreground">
-                            Membro desde {userData.createdAt}
+                            Membro desde {userData?.createdAt}
                           </p>
                         </>
                       )}
@@ -339,11 +360,11 @@ export default function ProfilePage() {
                       <div>
                         <h3 className="text-sm font-medium">Biografia</h3>
                         <p className="text-sm text-muted-foreground mt-1">
-                          {userData.bio || "Nenhuma biografia adicionada."}
+                          {userData?.bio || "Nenhuma biografia adicionada."}
                         </p>
                       </div>
 
-                      {userData.website && (
+                      {userData?.website && (
                         <div>
                           <h3 className="text-sm font-medium">Website</h3>
                           <a
@@ -357,12 +378,12 @@ export default function ProfilePage() {
                         </div>
                       )}
 
-                      {(userData.socialLinks?.instagram ||
-                        userData.socialLinks?.twitter) && (
+                      {(userData?.socialLinks?.instagram ||
+                        userData?.socialLinks?.twitter) && (
                         <div>
                           <h3 className="text-sm font-medium">Redes Sociais</h3>
                           <div className="flex gap-4 mt-1">
-                            {userData.socialLinks?.instagram && (
+                            {userData?.socialLinks?.instagram && (
                               <a
                                 href={`https://instagram.com/${userData.socialLinks.instagram}`}
                                 target="_blank"
@@ -372,7 +393,7 @@ export default function ProfilePage() {
                                 Instagram: @{userData.socialLinks.instagram}
                               </a>
                             )}
-                            {userData.socialLinks?.twitter && (
+                            {userData?.socialLinks?.twitter && (
                               <a
                                 href={`https://twitter.com/${userData.socialLinks.twitter}`}
                                 target="_blank"
@@ -392,7 +413,7 @@ export default function ProfilePage() {
                     <Card>
                       <CardContent className="p-4 text-center">
                         <p className="text-3xl font-bold">
-                          {userData.totalArts}
+                          {userData?.totalArts}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           Obras Criadas
@@ -402,7 +423,7 @@ export default function ProfilePage() {
                     <Card>
                       <CardContent className="p-4 text-center">
                         <p className="text-3xl font-bold">
-                          {userData.totalAlbums}
+                          {userData?.totalAlbums}
                         </p>
                         <p className="text-sm text-muted-foreground">Álbuns</p>
                       </CardContent>
@@ -410,7 +431,7 @@ export default function ProfilePage() {
                     <Card>
                       <CardContent className="p-4 text-center">
                         <p className="text-3xl font-bold">
-                          {userData.totalLikes}
+                          {userData?.totalLikes}
                         </p>
                         <p className="text-sm text-muted-foreground">
                           Curtidas Recebidas

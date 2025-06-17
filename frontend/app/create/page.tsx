@@ -425,62 +425,10 @@ export default function CreateArtPage() {
         throw new Error("Erro ao salvar arte: resposta inválida do servidor");
       }
 
-      // Função para tentar carregar a imagem
-      const tryLoadImage = async (attempt = 1, maxAttempts = 3) => {
-        if (attempt > maxAttempts) {
-          throw new Error("Não foi possível verificar se a imagem foi salva após várias tentativas");
-        }
-
-        // Esperar um pouco antes de tentar carregar a imagem
-        // Aumenta o tempo de espera a cada tentativa
-        await new Promise(resolve => setTimeout(resolve, attempt * 1000));
-
-        const imageUrl = api.arts.getImageUrl(savedArt.id);
-        
-        try {
-          await new Promise<void>((resolve, reject) => {
-            const img = new Image();
-            const timeoutId = setTimeout(() => {
-              reject(new Error("Tempo esgotado ao tentar carregar a imagem"));
-            }, 5000);
-
-            img.onload = () => {
-              clearTimeout(timeoutId);
-              resolve();
-            };
-
-            img.onerror = () => {
-              clearTimeout(timeoutId);
-              reject(new Error());
-            };
-
-            img.src = imageUrl;
-          });
-
-          // Se chegou aqui, a imagem carregou com sucesso
-          return true;
-        } catch (error) {
-          // Se não é a última tentativa, tenta novamente
-          if (attempt < maxAttempts) {
-            console.log(`Tentativa ${attempt} falhou, tentando novamente...`);
-            return tryLoadImage(attempt + 1, maxAttempts);
-          }
-          throw error;
-        }
-      };
-
-      // Tentar carregar a imagem com retentativas
-      try {
-        await tryLoadImage();
-        toast.success("Arte salva com sucesso!");
-        router.push("/my-gallery");
-      } catch (error) {
-        console.error("Erro ao verificar imagem:", error);
-        // Se falhou em carregar a imagem, mas a arte foi salva,
-        // ainda redirecionamos, mas com um aviso
-        toast.warning("Arte salva, mas pode haver um atraso para visualizar a imagem");
-        router.push("/my-gallery");
-      }
+      // Como a arte foi criada com sucesso, redirecionamos diretamente
+      toast.success("Arte salva com sucesso!");
+      router.push("/my-gallery");
+      
     } catch (error) {
       console.error("Erro ao salvar arte:", error);
       toast.error(error instanceof Error ? error.message : "Erro ao salvar arte");

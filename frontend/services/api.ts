@@ -114,6 +114,16 @@ export const api = {
       const tags = data.get('tags');
       const metadata = data.get('metadata');
 
+      if (!name || name.trim() === '') {
+        throw new Error('Nome da arte é obrigatório');
+      }
+
+      if (!imageBlob) {
+        throw new Error('Imagem é obrigatória');
+      }
+
+      console.log('Iniciando criação de arte:', { name, description, isPublic });
+
       // Primeiro, vamos criar o registro da arte
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/arts`, {
         method: 'POST',
@@ -122,8 +132,8 @@ export const api = {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          name,
-          description,
+          name: name.trim(),
+          description: description?.trim() || '',
           isPublic,
           tags: tags ? JSON.parse(tags as string) : [],
           metadata: metadata ? JSON.parse(metadata as string) : {},
@@ -131,15 +141,32 @@ export const api = {
       });
 
       if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.message || 'Erro ao criar arte');
+        const errorText = await response.text();
+        let errorMessage = 'Erro ao criar arte';
+        
+        try {
+          const error = JSON.parse(errorText);
+          errorMessage = error.error || error.message || errorMessage;
+        } catch {
+          errorMessage = errorText || errorMessage;
+        }
+        
+        throw new Error(errorMessage);
       }
 
       const art = await response.json();
+      console.log('Arte criada:', { artId: art.id });
+
+      if (!art.id) {
+        throw new Error('Erro: resposta inválida do servidor ao criar arte');
+      }
 
       // Fazer upload da imagem
       const imageFormData = new FormData();
       imageFormData.append('image', imageBlob);
+      
+      console.log('Iniciando upload de imagem para arte:', art.id);
+      
       const uploadResponse = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/arts/${art.id}/image`, {
         method: 'POST',
         headers: {
@@ -149,11 +176,35 @@ export const api = {
       });
 
       if (!uploadResponse.ok) {
-        const error = await uploadResponse.json();
-        throw new Error(error.message || 'Erro ao fazer upload da imagem');
+        const errorText = await uploadResponse.text();
+        let errorMessage = 'Erro ao fazer upload da imagem';
+        
+        try {
+          const error = JSON.parse(errorText);
+          errorMessage = error.error || error.message || errorMessage;
+        } catch {
+          // Se não conseguiu fazer parse do JSON, pode ser uma resposta não-JSON
+          console.error('Resposta não-JSON do servidor:', errorText);
+          errorMessage = 'Erro no servidor ao processar imagem';
+        }
+        
+        throw new Error(errorMessage);
       }
 
-      return uploadResponse.json();
+      // Verificar se a resposta é JSON válido
+      const responseText = await uploadResponse.text();
+      let finalArt;
+      
+      try {
+        finalArt = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('Erro ao fazer parse da resposta:', parseError);
+        console.error('Resposta recebida:', responseText);
+        throw new Error('Erro: resposta inválida do servidor ao fazer upload da imagem');
+      }
+
+      console.log('Upload de imagem concluído:', { artId: finalArt.id });
+      return finalArt;
     },
 
     // Atualizar uma arte

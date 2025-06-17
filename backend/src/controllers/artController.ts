@@ -12,29 +12,88 @@ export const createArt = async (req: any, res: Response, next: NextFunction) => 
       return;
     }
 
-    // Criar a arte primeiro
-    const art = await artService.createArt({
+    if (!name || name.trim() === '') {
+      res.status(400).json({ error: "Nome da arte é obrigatório" });
+      return;
+    }
+
+    console.log('Criando arte:', {
       name,
       description,
-      isPublic: isPublic === 'true',
-      creatorId: userId,
-      tags: tags ? JSON.parse(tags) : [],
-      metadata: metadata ? JSON.parse(metadata) : {},
+      isPublic,
+      hasFile: !!file,
+      userId,
+      tags,
+      metadata
     });
+
+    // Parse seguro de tags
+    let parsedTags = [];
+    if (tags) {
+      try {
+        if (typeof tags === 'string') {
+          parsedTags = JSON.parse(tags);
+        } else if (Array.isArray(tags)) {
+          parsedTags = tags;
+        }
+      } catch (error) {
+        console.warn('Erro ao fazer parse de tags:', tags, error);
+        // Se o parse falhar, tenta tratar como string simples
+        parsedTags = typeof tags === 'string' ? [tags] : [];
+      }
+    }
+
+    // Parse seguro de metadata
+    let parsedMetadata = {};
+    if (metadata) {
+      try {
+        if (typeof metadata === 'string') {
+          parsedMetadata = JSON.parse(metadata);
+        } else if (typeof metadata === 'object') {
+          parsedMetadata = metadata;
+        }
+      } catch (error) {
+        console.warn('Erro ao fazer parse de metadata:', metadata, error);
+        // Se o parse falhar, usa objeto vazio
+        parsedMetadata = {};
+      }
+    }
+
+    // Criar a arte primeiro
+    const art = await artService.createArt({
+      name: name.trim(),
+      description: description?.trim() || '',
+      isPublic: isPublic === 'true' || isPublic === true,
+      creatorId: userId,
+      tags: parsedTags,
+      metadata: parsedMetadata,
+    });
+
+    console.log('Arte criada:', { artId: art.id });
 
     // Se tiver imagem, atualizar a arte com a imagem
     if (file) {
+      console.log('Processando imagem:', {
+        artId: art.id,
+        mimeType: file.mimetype,
+        size: file.size
+      });
+
       const updatedArt = await artService.updateArtImage(
         art.id,
         file.buffer,
         file.mimetype,
         userId
       );
+      
+      console.log('Arte atualizada com imagem:', { artId: updatedArt.id });
       res.status(201).json(updatedArt);
     } else {
+      console.log('Arte criada sem imagem:', { artId: art.id });
       res.status(201).json(art);
     }
   } catch (error: any) {
+    console.error('Erro ao criar arte:', error);
     next(error);
   }
 };
@@ -144,6 +203,11 @@ export const uploadImage = async (req: any, res: Response, next: NextFunction) =
       return;
     }
 
+    if (!id || id.trim() === '') {
+      res.status(400).json({ error: "ID da arte é obrigatório" });
+      return;
+    }
+
     console.log('Recebendo upload de imagem:', {
       artId: id,
       userId,
@@ -164,7 +228,7 @@ export const uploadImage = async (req: any, res: Response, next: NextFunction) =
       mimeType: art.mimeType
     });
     
-    res.json(art);
+    res.status(200).json(art);
   } catch (error: any) {
     console.error('Erro no upload de imagem:', error);
     next(error);
@@ -203,19 +267,27 @@ export const getArtImage = async (req: any, res: Response, next: NextFunction) =
       imageSize: art.imageData.length
     });
 
-    // Configurar cabeçalhos de segurança e cache
+    // Configurar cabeçalhos para melhor compatibilidade com CORS
     res.setHeader('Content-Type', art.mimeType);
-    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
-    res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
-    res.setHeader('Access-Control-Allow-Origin', 'http://localhost:3000');
-    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-    res.setHeader('Cache-Control', 'no-store, must-revalidate');
-    res.setHeader('Pragma', 'no-cache');
-    res.setHeader('Expires', '0');
-    res.removeHeader('Content-Security-Policy');
-    res.removeHeader('X-Frame-Options');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+    res.setHeader('Content-Length', art.imageData.length.toString());
+    
+    // Cache headers - permitir cache da imagem
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hora de cache
+    res.setHeader('ETag', `"${art.id}-${art.updatedAt?.getTime()}"`);
+    
+    // Verificar If-None-Match para cache condicional
+    const ifNoneMatch = req.headers['if-none-match'];
+    const etag = `"${art.id}-${art.updatedAt?.getTime()}"`;
+    
+    if (ifNoneMatch === etag) {
+      res.status(304).end();
+      return;
+    }
     
     // Enviar a imagem como buffer
     res.end(art.imageData);
