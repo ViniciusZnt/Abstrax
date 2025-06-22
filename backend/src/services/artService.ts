@@ -382,4 +382,26 @@ export const artService = {
 
     return updatedArt;
   },
+
+  async getPublicArts() {
+    return prisma.art.findMany({
+      where: {
+        isPublic: true,
+        imageData: {
+          not: null, // Só mostrar artes que têm imagem
+        },
+      },
+      include: {
+        creator: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    });
+  },
 }; 

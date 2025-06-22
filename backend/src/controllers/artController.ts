@@ -321,3 +321,12 @@ export const toggleVisibility = async (req: any, res: Response, next: NextFuncti
     next(error);
   }
 };
+
+export const getPublicArts = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const arts = await artService.getPublicArts();
+    res.json(arts);
+  } catch (error: any) {
+    next(error);
+  }
+};

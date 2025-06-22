@@ -1,102 +1,106 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserHeader } from "@/components/layout/user-header";
-import HeartIcon from "@/components/icons/heart-icon";
-import { LockClosedIcon, LockOpenIcon } from "@/components/icons/lock-icon";
+import { AuthImage } from "@/components/AuthImage";
+import { LockOpenIcon } from "@/components/icons/lock-icon";
+import { api } from "@/services/api";
 
-// TODO: Substituir por dados da API quando o backend estiver pronto
-const publicArts = [
-  {
-    id: "1",
-    title: "Harmonia Tranquila",
-    description: "A harmonia tranquila da água, luz e vegetação exuberante.",
-    imageUrl: "/placeholder.svg?height=300&width=400",
-    creator: "João Silva",
-    createdAt: "2023-05-15",
-    likes: 24,
-    isPublic: true,
-  },
-  {
-    id: "2",
-    title: "Celebração do Infinito",
-    description: "Uma celebração do infinito e da beleza natural.",
-    imageUrl: "/placeholder.svg?height=300&width=400",
-    creator: "Maria Oliveira",
-    createdAt: "2023-06-22",
-    likes: 18,
-    isPublic: true,
-  },
-  {
-    id: "3",
-    title: "Paisagem Onírica",
-    description: "Uma paisagem onírica que transcende a realidade.",
-    imageUrl: "/placeholder.svg?height=300&width=400",
-    creator: "Carlos Mendes",
-    createdAt: "2023-07-10",
-    likes: 32,
-    isPublic: false,
-  },
-  {
-    id: "4",
-    title: "Abstração Geométrica",
-    description: "Formas geométricas em harmonia com cores vibrantes.",
-    imageUrl: "/placeholder.svg?height=300&width=400",
-    creator: "Ana Santos",
-    createdAt: "2023-08-05",
-    likes: 15,
-    isPublic: false,
-  },
-  {
-    id: "5",
-    title: "Fluidez Cósmica",
-    description: "A fluidez do cosmos em uma explosão de cores.",
-    imageUrl: "/placeholder.svg?height=300&width=400",
-    creator: "Pedro Costa",
-    createdAt: "2023-09-18",
-    likes: 27,
-    isPublic: true,
-  },
-  {
-    id: "6",
-    title: "Sinfonia de Cores",
-    description: "Uma sinfonia visual de cores e formas abstratas.",
-    imageUrl: "/placeholder.svg?height=300&width=400",
-    creator: "Luísa Ferreira",
-    createdAt: "2023-10-02",
-    likes: 21,
-    isPublic: false,
-  },
-];
+interface Art {
+  id: string;
+  name: string;
+  description?: string;
+  imageUrl?: string;
+  isPublic: boolean;
+  createdAt: string;
+  creator: {
+    id: string;
+    name: string;
+  };
+}
 
 export default function GalleryPage() {
+  const [arts, setArts] = useState<Art[]>([]);
+  const [filteredArts, setFilteredArts] = useState<Art[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("recent");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const publicFilteredArts = publicArts.filter((art) => art.isPublic);
-  // Filtrar artes com base no termo de pesquisa
-  const filteredArts = publicFilteredArts.filter(
-    (art) =>
-      art.title.toLowerCase().includes(searchTerm.toLowerCase()) || //Pesquisa sobre Titula
-      art.description.toLowerCase().includes(searchTerm.toLowerCase()) || //Pesquisa sobre Descrição
-      art.creator.toLowerCase().includes(searchTerm.toLowerCase()) //Pesquisa sobre Criador
-  );
+  useEffect(() => {
+    const fetchPublicArts = async () => {
+      try {
+        setLoading(true);
+        const publicArts = await api.arts.getPublicArts();
+        setArts(publicArts);
+        setFilteredArts(publicArts);
+      } catch (err: any) {
+        setError(err.message || "Erro ao carregar artes públicas");
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  // Ordenar artes com base na aba ativa
-  const sortedArts = [...filteredArts].sort((a, b) => {
-    if (activeTab === "recent") {
-      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
-    } else if (activeTab === "popular") {
-      return b.likes - a.likes;
-    }
-    return 0;
-  });
+    fetchPublicArts();
+  }, []);
+
+  useEffect(() => {
+    // Filtrar artes com base no termo de pesquisa
+    const filtered = arts.filter(
+      (art) =>
+        art.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (art.description?.toLowerCase().includes(searchTerm.toLowerCase())) ||
+        art.creator.name.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+
+    // Ordenar artes com base na aba ativa
+    const sorted = [...filtered].sort((a, b) => {
+      if (activeTab === "recent") {
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      } else if (activeTab === "popular") {
+        // Por enquanto, usar criação mais recente como popularidade
+        // Você pode adicionar um campo de likes/views futuramente
+        return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+      return 0;
+    });
+
+    setFilteredArts(sorted);
+  }, [arts, searchTerm, activeTab]);
+
+  if (loading) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <UserHeader />
+        <div className="container py-6 px-4 md:px-6">
+          <div className="flex items-center justify-center py-12">
+            <p className="text-muted-foreground">Carregando artes públicas...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <UserHeader />
+        <div className="container py-6 px-4 md:px-6">
+          <div className="flex flex-col items-center justify-center py-12 text-center">
+            <p className="text-red-500 mb-4">{error}</p>
+            <Button onClick={() => window.location.reload()}>
+              Tentar Novamente
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -131,52 +135,44 @@ export default function GalleryPage() {
             </Tabs>
           </div>
 
-          {sortedArts.length === 0 ? (
+          {filteredArts.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <p className="text-muted-foreground mb-4">
-                Nenhuma arte encontrada
+                {searchTerm ? "Nenhuma arte encontrada" : "Nenhuma arte pública disponível"}
               </p>
               <Link href="/create">
-                <Button>Criar Arte</Button>
+                <Button>Contribuir com Arte</Button>
               </Link>
             </div>
           ) : (
             <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {sortedArts.map((art) => (
+              {filteredArts.map((art) => (
                 <Card key={art.id} className="overflow-hidden">
                   <CardContent className="p-0">
-                    <Image
-                      src={art.imageUrl || "/placeholder.svg"}
-                      alt={art.title}
-                      width={400}
-                      height={300}
-                      className="object-cover w-full h-[200px]"
-                    />
+                    <div className="w-full h-[200px] relative">
+                      <AuthImage
+                        src={art.imageUrl || "/placeholder.svg"}
+                        alt={art.name}
+                        width={400}
+                        height={200}
+                        className="object-cover w-full h-full"
+                      />
+                    </div>
                     <div className="p-4">
-                      <h3 className="font-semibold text-lg">{art.title}</h3>
+                      <h3 className="font-semibold text-lg">{art.name}</h3>
                       <p className="text-sm text-muted-foreground">
-                        {art.description}
+                        {art.description || "Sem descrição"}
                       </p>
                       <div className="mt-2 flex items-center justify-between">
                         <span className="text-xs text-muted-foreground">
-                          Por: {art.creator}
+                          Por: {art.creator.name}
                         </span>
                         <span className="text-xs text-muted-foreground flex items-center gap-1">
-                          {art.isPublic ? (
-                            <LockOpenIcon
-                              className="h-4 w-4"
-                              aria-label="cadeado aberto"
-                            />
-                          ) : (
-                            <LockClosedIcon
-                              className="h-4 w-4"
-                              aria-label="cadeado fechado"
-                            />
-                          )}
-                          <HeartIcon className="h-4 w-4 text-red-500" />
-                          <span className="text-sm text-muted-foreground flex items-center gap-2">
-                            {art.likes}
-                          </span>
+                          <LockOpenIcon
+                            className="h-4 w-4 text-green-500"
+                            aria-label="arte pública"
+                          />
+                          <span className="text-green-500">Pública</span>
                         </span>
                       </div>
                     </div>
