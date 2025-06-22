@@ -214,7 +214,11 @@ export const albumService = {
             name: true,
           },
         },
-        arts: true,
+        _count: {
+          select: {
+            arts: true,
+          },
+        },
       },
       orderBy: {
         createdAt: "desc",

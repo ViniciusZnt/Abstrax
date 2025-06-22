@@ -9,6 +9,7 @@ import {
   getUserArts,
   uploadImage,
   getArtImage,
+  toggleVisibility,
 } from "../controllers/artController";
 
 const router = Router();
@@ -22,6 +23,9 @@ router.get("/user/arts", getUserArts);
 router.get("/:id", getArt);
 router.put("/:id", updateArt);
 router.delete("/:id", deleteArt);
+
+// Alternar visibilidade
+router.patch("/:id/visibility", toggleVisibility);
 
 // Rotas de imagem
 router.post("/:id/image", upload.single("image"), uploadImage);

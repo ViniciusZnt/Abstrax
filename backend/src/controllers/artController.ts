@@ -296,3 +296,28 @@ export const getArtImage = async (req: any, res: Response, next: NextFunction) =
     next(error);
   }
 };
+
+export const toggleVisibility = async (req: any, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+    const userId = req.userId;
+
+    if (!userId) {
+      res.status(401).json({ error: "Usuário não autenticado" });
+      return;
+    }
+
+    const art = await artService.toggleVisibility(id, userId);
+    res.json(art);
+  } catch (error: any) {
+    if (error.message === "Não autorizado") {
+      res.status(403).json({ error: error.message });
+      return;
+    }
+    if (error.message === "Arte não encontrada") {
+      res.status(404).json({ error: error.message });
+      return;
+    }
+    next(error);
+  }
+};

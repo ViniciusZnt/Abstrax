@@ -14,6 +14,12 @@ export function MainNav() {
           Galeria
         </Link>
         <Link
+          href="/my-gallery"
+          className="text-sm font-medium transition-colors hover:text-primary"
+        >
+          Minha Galeria
+        </Link>
+        <Link
           href="/create"
           className="text-sm font-medium transition-colors hover:text-primary"
         >

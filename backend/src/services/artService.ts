@@ -41,6 +41,22 @@ export const artService = {
       },
     });
 
+    // Atualizar a arte com o imageUrl correto
+    const updatedArt = await prisma.art.update({
+      where: { id: art.id },
+      data: {
+        imageUrl: `/arts/${art.id}/image`,
+      },
+      include: {
+        creator: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
     // Registra a criação no log
     await logService.createLog({
       action: ActionType.CREATE,
@@ -54,7 +70,7 @@ export const artService = {
       },
     });
 
-    return art;
+    return updatedArt;
   },
 
   async getArt(id: string, userId: string) {
@@ -304,5 +320,66 @@ export const artService = {
       console.error("Erro ao atualizar imagem:", error);
       throw new Error(`Erro ao atualizar imagem: ${error.message}`);
     }
+  },
+
+  async toggleVisibility(id: string, userId: string) {
+    const art = await prisma.art.findUnique({
+      where: { id },
+      include: {
+        creator: {
+          select: {
+            id: true,
+            role: true,
+          },
+        },
+      },
+    });
+
+    if (!art) {
+      throw new Error("Arte não encontrada");
+    }
+
+    // Verifica se o usuário tem permissão para alterar a visibilidade
+    if (art.creatorId !== userId) {
+      const user = await prisma.user.findUnique({
+        where: { id: userId },
+        select: { role: true },
+      });
+
+      if (user?.role !== "admin") {
+        throw new Error("Não autorizado");
+      }
+    }
+
+    const updatedArt = await prisma.art.update({
+      where: { id },
+      data: {
+        isPublic: !art.isPublic,
+      },
+      include: {
+        creator: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+      },
+    });
+
+    // Registra a alteração de visibilidade no log
+    await logService.createLog({
+      action: ActionType.UPDATE,
+      entityType: EntityType.ART,
+      entityId: updatedArt.id,
+      userId: userId,
+      artId: updatedArt.id,
+      details: {
+        name: updatedArt.name,
+        visibilityChanged: true,
+        isPublic: updatedArt.isPublic,
+      },
+    });
+
+    return updatedArt;
   },
 }; 

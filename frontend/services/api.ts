@@ -44,6 +44,25 @@ interface Art {
     id: string;
     name: string;
   };
+  albumId?: string;
+}
+
+interface Album {
+  id: string;
+  title: string;
+  description?: string;
+  imageUrl: string;
+  tags?: any;
+  createdAt: string;
+  updatedAt: string;
+  creator: {
+    id: string;
+    name: string;
+  };
+  arts?: Art[];
+  _count?: {
+    arts: number;
+  };
 }
 
 export const api = {
@@ -370,6 +389,159 @@ export const api = {
     // Obter URL do avatar
     getAvatarUrl: (userId: string): string => {
       return `${process.env.NEXT_PUBLIC_API_URL}/users/${userId}/avatar`;
+    },
+  },
+
+  albums: {
+    // Buscar todos os álbuns do usuário
+    getMyAlbums: async (): Promise<Album[]> => {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Usuário não autenticado');
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/albums/user/albums`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao buscar álbuns');
+      }
+
+      return response.json();
+    },
+
+    // Criar um novo álbum
+    create: async (data: {
+      title: string;
+      description?: string;
+      imageUrl?: string;
+      tags?: any;
+    }): Promise<Album> => {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Usuário não autenticado');
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/albums`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao criar álbum');
+      }
+
+      return response.json();
+    },
+
+    // Buscar um álbum específico
+    getById: async (id: string): Promise<Album> => {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Usuário não autenticado');
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/albums/${id}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao buscar álbum');
+      }
+
+      return response.json();
+    },
+
+    // Buscar artes de um álbum
+    getArts: async (id: string): Promise<Art[]> => {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Usuário não autenticado');
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/albums/${id}/arts`, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao buscar artes do álbum');
+      }
+
+      return response.json();
+    },
+
+    // Atualizar um álbum
+    update: async (id: string, data: {
+      title?: string;
+      description?: string;
+      imageUrl?: string;
+      tags?: any;
+    }): Promise<Album> => {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Usuário não autenticado');
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/albums/${id}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao atualizar álbum');
+      }
+
+      return response.json();
+    },
+
+    // Deletar um álbum
+    delete: async (id: string): Promise<void> => {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Usuário não autenticado');
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/albums/${id}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao deletar álbum');
+      }
+    },
+
+    // Mover arte para um álbum
+    moveArt: async (artId: string, albumId: string | null): Promise<Art> => {
+      const token = localStorage.getItem('token');
+      if (!token) throw new Error('Usuário não autenticado');
+
+      const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/albums/art/${artId}/move`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({ albumId }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.message || 'Erro ao mover arte');
+      }
+
+      return response.json();
     },
   },
 }; 
