@@ -11,12 +11,14 @@ import {
   getArtImage,
   toggleVisibility,
   getPublicArts,
+  getPublicArtImage,
 } from "../controllers/artController";
 
 const router = Router();
 
-// Rota pública (sem autenticação)
+// Rotas públicas (sem autenticação)
 router.get("/public", getPublicArts);
+router.get("/:id/image/public", getPublicArtImage);
 
 // Rotas protegidas por autenticação
 router.use(authenticate);

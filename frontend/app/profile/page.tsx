@@ -25,6 +25,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { MainNav } from "@/components/navigation/main-nav";
 import { AuthActions } from "@/components/layout/auth-actions";
 import { api } from "@/services/api";
+import { toast } from "sonner";
 
 interface UserData {
   id: string;
@@ -48,7 +49,6 @@ export default function ProfilePage() {
   const [activeTab, setActiveTab] = useState("info");
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
-  const [formError, setFormError] = useState("");
 
   // Form state
   const [name, setName] = useState("");
@@ -63,6 +63,7 @@ export default function ProfilePage() {
 
   // Estado para dados do usuário
   const [userData, setUserData] = useState<UserData | null>(null);
+  const [isLoadingProfile, setIsLoadingProfile] = useState(true);
 
   // Carregar dados do usuário
   useEffect(() => {
@@ -71,6 +72,8 @@ export default function ProfilePage() {
       router.push("/login");
       return;
     }
+    
+    setIsLoadingProfile(true);
     api.users
       .getProfile()
       .then((data: any) => {
@@ -98,96 +101,114 @@ export default function ProfilePage() {
         setInstagram(data.socialLinks?.instagram || "");
         setTwitter(data.socialLinks?.twitter || "");
       })
-      .catch(() => {
+      .catch((error) => {
+        console.error("Erro ao carregar perfil:", error);
+        toast.error("Erro ao carregar perfil");
         localStorage.removeItem("token");
         router.push("/login");
+      })
+      .finally(() => {
+        setIsLoadingProfile(false);
       });
   }, []);
 
   const handleSaveProfile = async () => {
-    setFormError("");
     setIsSaving(true);
 
-    try {
-      // TODO: Integrar com o endpoint de atualização de perfil do backend
-      // const response = await fetch('/api/users/me', {
-      //   method: 'PUT',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${localStorage.getItem('token')}`
-      //   },
-      //   body: JSON.stringify({
-      //     name,
-      //     bio,
-      //     website,
-      //     socialLinks: {
-      //       instagram,
-      //       twitter
-      //     }
-      //   })
-      // })
+    // Validações básicas
+    if (!name.trim()) {
+      toast.error("Nome é obrigatório");
+      setIsSaving(false);
+      return;
+    }
 
-      // Simulando atualização bem-sucedida
-      console.log("Atualizando perfil:", {
-        name,
-        bio,
-        website,
+    if (website && !website.startsWith("http")) {
+      toast.error("Website deve começar com http:// ou https://");
+      setIsSaving(false);
+      return;
+    }
+
+    try {
+      await api.users.updateProfile({
+        name: name.trim(),
+        bio: bio.trim(),
+        website: website.trim(),
         socialLinks: {
-          instagram,
-          twitter,
+          instagram: instagram.trim(),
+          twitter: twitter.trim(),
         },
       });
 
-      setTimeout(() => {
-        setIsSaving(false);
-        setIsEditing(false);
-      }, 1000);
-    } catch (error) {
+      // Atualizar dados locais
+      if (userData) {
+        setUserData({
+          ...userData,
+          name: name.trim(),
+          bio: bio.trim(),
+          website: website.trim(),
+          socialLinks: {
+            instagram: instagram.trim(),
+            twitter: twitter.trim(),
+          },
+        });
+      }
+
+      setIsSaving(false);
+      setIsEditing(false);
+      toast.success("Perfil atualizado com sucesso!");
+    } catch (error: any) {
       console.error("Erro ao atualizar perfil:", error);
-      setFormError("Ocorreu um erro ao atualizar o perfil. Tente novamente.");
+      toast.error(error.message || "Erro ao atualizar perfil. Tente novamente.");
       setIsSaving(false);
     }
   };
 
   const handleChangePassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    setFormError("");
+
+    // Validações
+    if (!currentPassword.trim()) {
+      toast.error("Senha atual é obrigatória");
+      return;
+    }
+
+    if (!newPassword.trim()) {
+      toast.error("Nova senha é obrigatória");
+      return;
+    }
 
     if (newPassword !== confirmPassword) {
-      setFormError("As senhas não coincidem");
+      toast.error("As senhas não coincidem");
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      toast.error("A nova senha deve ter pelo menos 6 caracteres");
+      return;
+    }
+
+    if (currentPassword === newPassword) {
+      toast.error("A nova senha deve ser diferente da senha atual");
       return;
     }
 
     setIsSaving(true);
 
     try {
-      // TODO: Integrar com o endpoint de alteração de senha do backend
-      // const response = await fetch('/api/users/me/password', {
-      //   method: 'PUT',
-      //   headers: {
-      //     'Content-Type': 'application/json',
-      //     'Authorization': `Bearer ${localStorage.getItem('token')}`
-      //   },
-      //   body: JSON.stringify({
-      //     currentPassword,
-      //     newPassword
-      //   })
-      // })
+      await api.users.changePassword({
+        currentPassword,
+        newPassword,
+      });
 
-      // Simulando atualização bem-sucedida
-      console.log("Alterando senha");
-
-      setTimeout(() => {
-        setIsSaving(false);
-        setCurrentPassword("");
-        setNewPassword("");
-        setConfirmPassword("");
-        alert("Senha alterada com sucesso!");
-      }, 1000);
-    } catch (error) {
+      setIsSaving(false);
+      setCurrentPassword("");
+      setNewPassword("");
+      setConfirmPassword("");
+      toast.success("Senha alterada com sucesso!");
+    } catch (error: any) {
       console.error("Erro ao alterar senha:", error);
-      setFormError(
-        "Ocorreu um erro ao alterar a senha. Verifique se a senha atual está correta."
+      toast.error(
+        error.message || "Erro ao alterar senha. Verifique se a senha atual está correta."
       );
       setIsSaving(false);
     }
@@ -195,8 +216,22 @@ export default function ProfilePage() {
 
   const handleAvatarUpload = () => {
     // TODO: Implementar upload de avatar
-    alert("Funcionalidade de upload de avatar será implementada em breve!");
+    toast.info("Funcionalidade de upload de avatar será implementada em breve!");
   };
+
+  // Tela de loading
+  if (isLoadingProfile) {
+    return (
+      <div className="flex min-h-screen flex-col">
+        <UserHeader />
+        <div className="container py-6 px-4 md:px-6">
+          <div className="flex items-center justify-center h-[60vh]">
+            <p className="text-muted-foreground">Carregando perfil...</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen flex-col">
@@ -466,14 +501,6 @@ export default function ProfilePage() {
                 </CardHeader>
                 <form onSubmit={handleChangePassword}>
                   <CardContent className="space-y-4">
-                    {formError && (
-                      <Alert variant="destructive">
-                        <AlertCircle className="h-4 w-4" />
-                        <AlertTitle>Erro</AlertTitle>
-                        <AlertDescription>{formError}</AlertDescription>
-                      </Alert>
-                    )}
-
                     <div className="space-y-2">
                       <Label htmlFor="current-password">Senha Atual</Label>
                       <Input

@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { artService } from "../services/artService";
+import prisma from "../utils/prisma";
 
 export const createArt = async (req: any, res: Response, next: NextFunction) => {
   try {
@@ -327,6 +328,71 @@ export const getPublicArts = async (req: any, res: Response, next: NextFunction)
     const arts = await artService.getPublicArts();
     res.json(arts);
   } catch (error: any) {
+    next(error);
+  }
+};
+
+export const getPublicArtImage = async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { id } = req.params;
+
+    console.log('Buscando imagem pública:', { artId: id });
+
+    // Buscar arte sem autenticação, mas apenas se for pública
+    const art = await prisma.art.findUnique({
+      where: { 
+        id,
+        isPublic: true, // Só permite acesso a artes públicas
+        imageData: {
+          not: null, // Só se tiver imagem
+        },
+      },
+    });
+    
+    if (!art) {
+      console.log('Arte pública não encontrada:', { artId: id });
+      res.status(404).json({ error: "Arte pública não encontrada" });
+      return;
+    }
+
+    if (!art.imageData || !art.mimeType) {
+      console.log('Imagem não encontrada:', { artId: id, hasImageData: !!art.imageData, mimeType: art.mimeType });
+      res.status(404).json({ error: "Imagem não encontrada" });
+      return;
+    }
+
+    console.log('Enviando imagem pública:', {
+      artId: id,
+      mimeType: art.mimeType,
+      imageSize: art.imageData.length
+    });
+
+    // Configurar cabeçalhos para melhor compatibilidade com CORS
+    res.setHeader('Content-Type', art.mimeType);
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'unsafe-none');
+    res.setHeader('Content-Length', art.imageData.length.toString());
+    
+    // Cache headers - permitir cache da imagem
+    res.setHeader('Cache-Control', 'public, max-age=3600'); // 1 hora de cache
+    res.setHeader('ETag', `"${art.id}-${art.updatedAt?.getTime()}"`);
+    
+    // Verificar If-None-Match para cache condicional
+    const ifNoneMatch = req.headers['if-none-match'];
+    const etag = `"${art.id}-${art.updatedAt?.getTime()}"`;
+    
+    if (ifNoneMatch === etag) {
+      res.status(304).end();
+      return;
+    }
+    
+    // Enviar a imagem como buffer
+    res.end(art.imageData);
+  } catch (error: any) {
+    console.error('Erro ao buscar imagem pública:', error);
     next(error);
   }
 };

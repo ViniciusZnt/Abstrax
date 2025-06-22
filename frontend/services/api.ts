@@ -290,6 +290,11 @@ export const api = {
       return `${process.env.NEXT_PUBLIC_API_URL}/arts/${artId}/image`;
     },
 
+    // Obter URL da imagem pública de uma arte (sem autenticação)
+    getPublicImageUrl: (artId: string): string => {
+      return `${process.env.NEXT_PUBLIC_API_URL}/arts/${artId}/image/public`;
+    },
+
     // Buscar todas as artes públicas (sem autenticação)
     getPublicArts: async (): Promise<Art[]> => {
       const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/arts/public`);

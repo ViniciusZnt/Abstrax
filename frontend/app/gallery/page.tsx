@@ -2,12 +2,12 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { UserHeader } from "@/components/layout/user-header";
-import { AuthImage } from "@/components/AuthImage";
 import { LockOpenIcon } from "@/components/icons/lock-icon";
 import { api } from "@/services/api";
 
@@ -150,12 +150,16 @@ export default function GalleryPage() {
                 <Card key={art.id} className="overflow-hidden">
                   <CardContent className="p-0">
                     <div className="w-full h-[200px] relative">
-                      <AuthImage
-                        src={art.imageUrl || "/placeholder.svg"}
+                      <Image
+                        src={api.arts.getPublicImageUrl(art.id)}
                         alt={art.name}
                         width={400}
                         height={200}
                         className="object-cover w-full h-full"
+                        onError={(e) => {
+                          // Fallback para placeholder se a imagem não carregar
+                          e.currentTarget.src = "/placeholder.svg";
+                        }}
                       />
                     </div>
                     <div className="p-4">
