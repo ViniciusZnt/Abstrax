@@ -1,38 +1,107 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+import bcrypt from "bcryptjs";
+import jwt from "jsonwebtoken";
+import { PrismaClient } from "@prisma/client";
 
-export async function registerUser(
-  name: string,
-  email: string,
-  password: string
-) {
-  const response = await fetch(`${API_URL}/auth/register`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ name, email, password }),
-  });
+const prisma = new PrismaClient();
 
-  const data = await response.json();
-  if (!response.ok) {
-    throw new Error(data.error || "Erro ao registrar");
-  }
+const JWT_SECRET = process.env.JWT_SECRET || "secreta";
 
-  return data;
-}
+export const authService = {
+  async register(name: string, email: string, password: string) {
+    const hashedPassword = await bcrypt.hash(password, 10);
 
-export const login = async (email: string, password: string) => {
-  const res = await fetch(`${API_URL}/login`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email, password }),
-  });
-  return res.json(); // deve retornar { token, user }
-};
+    const user = await prisma.user.create({
+      data: { name, email, password: hashedPassword },
+    });
 
-export const getProfile = async (token: string) => {
-  const res = await fetch(`${API_URL}/profile`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
-  return res.json();
+    return { id: user.id, name: user.name, email: user.email };
+  },
+
+  async login(email: string, password: string) {
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user) throw new Error("Usuário não encontrado");
+
+    const valid = await bcrypt.compare(password, user.password);
+    if (!valid) throw new Error("Senha inválida");
+
+    const token = jwt.sign({ userId: user.id }, JWT_SECRET, {
+      expiresIn: "7d",
+    });
+
+    return { token, user: { id: user.id, name: user.name, email: user.email } };
+  },
+
+  async getProfile(userId: string) {
+    const user = await prisma.user.findUnique({
+      where: { id: userId },
+      include: {
+        arts: { select: { id: true } },
+        albums: { select: { id: true } },
+        actions: { select: { id: true } },
+      },
+    });
+
+    if (!user) throw new Error("Perfil do usuário não encontrado");
+
+    // Calcular totalArts, totalAlbums, totalLikes (exemplo, você pode ter um campo dedicado para likes)
+    const totalArts = user.arts.length;
+    const totalAlbums = user.albums.length;
+    // Supondo que 'actions' pode ser usado para calcular 'likes' ou outra métrica
+    const totalLikes = user.actions.length; // Isso é um placeholder, ajuste conforme sua lógica de likes
+
+    // Remover password do retorno e campos que não queremos expor
+    const { password, arts, albums, actions, ...userProfile } = user;
+
+    return { 
+      ...userProfile, 
+      totalArts, 
+      totalAlbums, 
+      totalLikes
+    };
+  },
+
+  async updateProfile(userId: string, data: { name?: string; bio?: string; website?: string; socialLinks?: any }) {
+    const user = await prisma.user.update({
+      where: { id: userId },
+      data: data,
+      include: {
+        arts: { select: { id: true } },
+        albums: { select: { id: true } },
+        actions: { select: { id: true } },
+      },
+    });
+
+    if (!user) throw new Error("Usuário não encontrado para atualização");
+
+    const totalArts = user.arts.length;
+    const totalAlbums = user.albums.length;
+    const totalLikes = user.actions.length; // Placeholder
+
+    // Remover password do retorno e campos que não queremos expor
+    const { password, arts, albums, actions, ...userProfile } = user;
+
+    return { 
+      ...userProfile, 
+      totalArts, 
+      totalAlbums, 
+      totalLikes
+    };
+  },
+
+  async updatePassword(userId: string, currentPassword: string, newPassword: string) {
+    const user = await prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new Error("Usuário não encontrado");
+
+    const valid = await bcrypt.compare(currentPassword, user.password);
+    if (!valid) throw new Error("Senha atual inválida");
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+
+    await prisma.user.update({
+      where: { id: userId },
+      data: { password: hashedPassword },
+    });
+
+    return { message: "Senha atualizada com sucesso" };
+  },
 };
